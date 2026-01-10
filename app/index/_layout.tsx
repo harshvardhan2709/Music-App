@@ -7,7 +7,6 @@ export default function TabsLayout() {
     return (
         <Stack screenOptions={{ animation: pathname.startsWith("/index") ? "default" : "none", }}>
             <Stack.Screen name="index" options={{ title: "Queue" }} />
-            <Stack.Screen name="nested" options={{ title: "Feel-good-songs" }} />
         </Stack>
     );
 }
