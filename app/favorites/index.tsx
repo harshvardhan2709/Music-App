@@ -10,7 +10,7 @@ export default function FavoritesScreen() {
         </View>
     );
 }
-const styles =  StyleSheet.create ({
+const styles = StyleSheet.create({
     Text: {
         fontSize: 20,
         color: '#000000',

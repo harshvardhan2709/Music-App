@@ -32,25 +32,24 @@ export default function MusicPlayerScreen() {
     setLoading(false);
   };
 
-const playSong = async (uri: string) => {
-  try {
-    if (sound) {
-      await sound.unloadAsync();
+  const playSong = async (uri: string) => {
+    try {
+      if (sound) {
+        await sound.unloadAsync();
+      }
+      const cleanUri = uri.split('?')[0].split('#')[0];
+
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: cleanUri },
+        { shouldPlay: true }
+      );
+
+      setSound(newSound);
+    } catch (error) {
+      console.error('Audio play error:', error);
+      alert('This audio file cannot be played.');
     }
-    const cleanUri = uri.split('?')[0].split('#')[0];
-
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      { uri: cleanUri },
-      { shouldPlay: true }
-    );
-
-    setSound(newSound);
-  } catch (error) {
-    console.error('Audio play error:', error);
-    alert('This audio file cannot be played.');
-  }
-};
-
+  };
 
   const stopSong = async () => {
     if (!sound) return;
@@ -59,7 +58,7 @@ const playSong = async (uri: string) => {
     setSound(null);
   };
 
-  
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -73,7 +72,7 @@ const playSong = async (uri: string) => {
     return (
       <View style={styles.center}>
         <Text style={{ textAlign: 'center' }}>
-          Storage permission is required to access music files.
+          Permission is required to access music files.
         </Text>
       </View>
     );
@@ -109,17 +108,17 @@ const playSong = async (uri: string) => {
 }
 
 const styles = StyleSheet.create({
-container: {
-  flex: 1,
-  padding: 20,
-  backgroundColor: '#ffffff',
-},
-center: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '#ffffff',
-},
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#ffffff',
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
   song: { padding: 10, borderBottomWidth: 1 },
   stopBtn: {
