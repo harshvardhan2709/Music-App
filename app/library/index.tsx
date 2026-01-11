@@ -14,8 +14,8 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text className="text-xl text-black font-bold text-center "></Text>
+    <View >
+      <Text>Library Screen</Text>
       <Link href="/library/nested" push asChild>
         <Button title="nested" />
       </Link>
