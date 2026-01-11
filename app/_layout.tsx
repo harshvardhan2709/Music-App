@@ -1,3 +1,5 @@
+// app/_layout.tsx
+
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from 'expo-router';
 import { StatusBar } from "expo-status-bar";

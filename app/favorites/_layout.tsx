@@ -1,3 +1,5 @@
+// app/favorites/_layout.tsx
+
 import { Stack, usePathname } from 'expo-router';
 import React from "react";
 
