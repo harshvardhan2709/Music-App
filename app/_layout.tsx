@@ -2,10 +2,11 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import MiniPlayer from '../components/MiniPlayer';
 import { AudioPlayerProvider } from '../context/AudioPlayerContext';
 import { LikesProvider } from '../context/LikesContext';
+import '../global.css';
 
 export default function TabsLayout() {
   return (
@@ -16,7 +17,7 @@ export default function TabsLayout() {
         <Tabs
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: '#000',
+            tabBarActiveTintColor: '#000000ff',
             tabBarInactiveTintColor: '#666',
 
             tabBarStyle: {
@@ -27,8 +28,8 @@ export default function TabsLayout() {
             },
 
             tabBarBackground: () => (
-              <View style={styles.tabWrapper}>
-                <View style={styles.tabBar} />
+              <View className="absolute bottom-3 left-2.5 right-2.5">
+                <View className="h-[54px] bg-gray-200  rounded-3xl py-3 shadow-lg elevation-[12] shadow-black/15" />
               </View>
             ),
 
@@ -87,22 +88,3 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabWrapper: {
-    position: 'absolute',
-    bottom: 12,
-    left: 10,
-    right: 10,
-  },
-  tabBar: {
-    height: 54,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingVertical: 6,
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-});

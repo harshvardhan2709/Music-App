@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import {
     FlatList,
-    StyleSheet,
     Text,
     TouchableOpacity,
     View,
@@ -17,22 +16,22 @@ export default function FavoritesScreen() {
     const liked = useMemo(() => Object.values(likesMap), [likesMap]);
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Favorites</Text>
+        <View className="flex-1 p-4 bg-white">
+            <Text className="text-xl font-bold mb-3">Favorites</Text>
 
             <FlatList
                 data={liked}
                 keyExtractor={item => item.id}
                 ListEmptyComponent={
-                    <Text style={styles.empty}>No liked songs yet.</Text>
+                    <Text className="text-[#666] text-center mt-5">No liked songs yet.</Text>
                 }
                 renderItem={({ item }) => (
-                    <View style={styles.row}>
+                    <View className="flex-row items-center justify-between py-2 border-b border-[#eee]">
                         <TouchableOpacity
-                            style={styles.info}
+                            className="flex-1 pr-2.5"
                             onPress={() => play(item)}
                         >
-                            <Text numberOfLines={1} style={styles.songTitle}>
+                            <Text numberOfLines={1} className="text-base">
                                 {item.filename}
                             </Text>
                         </TouchableOpacity>
@@ -45,18 +44,3 @@ export default function FavoritesScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-    title: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
-    empty: { color: '#666', textAlign: 'center', marginTop: 20 },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderColor: '#eee',
-    },
-    info: { flex: 1, paddingRight: 10 },
-    songTitle: { fontSize: 16 },
-});

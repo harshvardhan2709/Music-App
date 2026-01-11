@@ -1,7 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import React from 'react';
 import {
-    StyleSheet,
     Text,
     TouchableOpacity,
     View,
@@ -14,10 +13,10 @@ export default function MiniPlayer() {
     if (!currentSong) return null;
 
     return (
-        <View style={styles.wrapper}>
-            <View style={styles.container}>
+        <View className="absolute bottom-[75px] left-[10px] right-[10px]">
+            <View className="bg-gray-200 rounded-3xl px-3 py-2.5 flex-row items-center shadow-sm elevation-2">
                 {/* 🎵 Artwork Placeholder */}
-                <View style={styles.artwork}>
+                <View className="w-[42px] h-[42px] rounded-lg bg-[#e5e5e5] justify-center items-center">
                     <FontAwesome
                         name="music"
                         size={20}
@@ -26,11 +25,11 @@ export default function MiniPlayer() {
                 </View>
 
                 {/* 📄 Song Info */}
-                <View style={styles.info}>
-                    <Text numberOfLines={1} style={styles.title}>
+                <View className="flex-1 mx-3">
+                    <Text numberOfLines={1} className="text-sm font-semibold text-black">
                         {currentSong.filename}
                     </Text>
-                    <Text style={styles.subtitle}>
+                    <Text className="text-[11px] text-[#666] mt-0.5">
                         {isPlaying ? 'Playing' : 'Paused'}
                     </Text>
                 </View>
@@ -48,42 +47,3 @@ export default function MiniPlayer() {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        position: 'absolute',
-        bottom: 75,
-        left: 10,
-        right: 10,
-    },
-    container: {
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        elevation: 2,
-    },
-    artwork: {
-        width: 42,
-        height: 42,
-        borderRadius: 8,
-        backgroundColor: '#e5e5e5',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    info: {
-        flex: 1,
-        marginHorizontal: 12,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#000',
-    },
-    subtitle: {
-        fontSize: 11,
-        color: '#666',
-        marginTop: 2,
-    },
-});

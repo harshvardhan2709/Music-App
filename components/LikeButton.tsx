@@ -2,7 +2,7 @@
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useLikes } from '../hooks/useLikes';
 
 type Props = {
@@ -19,7 +19,7 @@ export default function LikeButton({ song }: Props) {
     };
 
     return (
-        <TouchableOpacity onPress={onPress} style={styles.btn}>
+        <TouchableOpacity onPress={onPress} className="px-2 py-1 justify-center items-center">
             <FontAwesome
                 name={liked ? 'heart' : 'heart-o'}
                 size={20}
@@ -29,11 +29,3 @@ export default function LikeButton({ song }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
-    btn: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});

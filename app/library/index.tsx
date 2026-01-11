@@ -3,7 +3,6 @@
 import { Link } from "expo-router";
 import React from 'react';
 import { Alert, Button, Modal, Text, View } from 'react-native';
-import styles from './styles';
 
 export default function LibraryScreen() {
   const [modalVisible, setModalVisible] = React.useState(false);
@@ -15,7 +14,7 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 p-4 bg-white">
       <Text>Library Screen</Text>
       <Link href="/library/nested" push asChild>
         <Button title="nested" />
@@ -28,9 +27,9 @@ export default function LibraryScreen() {
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <View className="w-[300px] bg-white p-5 rounded-xl shadow-lg elevation-[10]">
+            <Text className="text-lg font-bold mb-3">
               This is a modal!
             </Text>
 
@@ -46,4 +45,5 @@ export default function LibraryScreen() {
 
   );
 }
+
 

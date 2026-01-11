@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Button,
   FlatList,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -69,7 +68,7 @@ export default function MusicPlayerScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
         <Text>Scanning device audio...</Text>
       </View>
@@ -78,7 +77,7 @@ export default function MusicPlayerScreen() {
 
   if (permissionDenied) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 justify-center items-center">
         <Text>Permission required to access audio files.</Text>
       </View>
     );
@@ -95,8 +94,8 @@ export default function MusicPlayerScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.row}>
+    <View className="flex-1 p-5 bg-white">
+      <View className="flex-row gap-2.5 mb-2.5">
         <Button title="A–Z" onPress={() => setSortType('name')} />
         <Button title="Duration" onPress={() => setSortType('duration')} />
       </View>
@@ -105,22 +104,22 @@ export default function MusicPlayerScreen() {
         placeholder="Search songs..."
         value={search}
         onChangeText={setSearch}
-        style={styles.search}
+        className="border border-[#ccc] p-2.5 mb-2.5 rounded-lg"
       />
 
       <FlatList
         data={sorted}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View style={styles.songRow}>
+          <View className="flex-row items-center justify-between border-b border-[#eee] py-2">
             <TouchableOpacity
-              style={styles.songTouch}
+              className="flex-1 px-2.5"
               onPress={() => play(item)}
             >
-              <Text numberOfLines={1} style={styles.songTitle}>
+              <Text numberOfLines={1} className="text-base">
                 {item.filename}
               </Text>
-              <Text style={styles.songMeta}>
+              <Text className="text-xs text-[#666]">
                 {formatDuration(item.realDuration)}
               </Text>
             </TouchableOpacity>
@@ -133,26 +132,3 @@ export default function MusicPlayerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  songRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-    paddingVertical: 8,
-  },
-  songTouch: { flex: 1, paddingHorizontal: 10 },
-  songTitle: { fontSize: 16 },
-  songMeta: { fontSize: 12, color: '#666' },
-  search: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-});
