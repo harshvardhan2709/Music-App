@@ -17,8 +17,6 @@ export default function FavoritesScreen() {
 
     return (
         <View className="flex-1 p-4 bg-white">
-            <Text className="text-xl font-bold mb-3">Favorites</Text>
-
             <FlatList
                 data={liked}
                 keyExtractor={item => item.id}

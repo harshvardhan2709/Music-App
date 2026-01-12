@@ -1,0 +1,130 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    FlatList,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { useAudioPlayer } from '../../context/AudioPlayerContext';
+import { usePlaylists } from '../../context/PlaylistsContext';
+
+export default function PlaylistDetailScreen() {
+    const { id } = useLocalSearchParams<{ id: string }>();
+    const router = useRouter();
+    const { playlists, renamePlaylist, deletePlaylist, removeSongFromPlaylist } =
+        usePlaylists();
+    const { play } = useAudioPlayer();
+
+    const playlist = playlists.find(p => p.id === id);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedName, setEditedName] = useState('');
+
+    useEffect(() => {
+        if (playlist) {
+            setEditedName(playlist.name);
+        }
+    }, [playlist]);
+
+    if (!playlist) {
+        return (
+            <View className="flex-1 justify-center items-center">
+                <Text>Playlist not found</Text>
+            </View>
+        );
+    }
+
+    const handleRename = async () => {
+        if (editedName.trim() && editedName !== playlist.name) {
+            await renamePlaylist(playlist.id, editedName);
+        }
+        setIsEditing(false);
+    };
+
+    const handleDelete = () => {
+        Alert.alert(
+            'Delete Playlist',
+            'Are you sure you want to delete this playlist?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await deletePlaylist(playlist.id);
+                        router.back();
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleRemoveSong = (songId: string) => {
+        removeSongFromPlaylist(playlist.id, songId);
+    };
+
+    return (
+        <View className="flex-1 bg-white p-5 pt-14">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-5">
+                <TouchableOpacity onPress={() => router.back()} className="p-2">
+                    <FontAwesome name="arrow-left" size={20} color="black" />
+                </TouchableOpacity>
+
+                {isEditing ? (
+                    <TextInput
+                        value={editedName}
+                        onChangeText={setEditedName}
+                        className="flex-1 mx-4 text-xl font-bold border-b border-gray-300"
+                        autoFocus
+                        onBlur={handleRename}
+                        onSubmitEditing={handleRename}
+                    />
+                ) : (
+                    <Text className="text-2xl font-bold flex-1 mx-4 text-center" numberOfLines={1}>
+                        {playlist.name}
+                    </Text>
+                )}
+
+                <View className="flex-row gap-4">
+                    <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+                        <FontAwesome name="pencil" size={20} color={isEditing ? "blue" : "black"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleDelete}>
+                        <FontAwesome name="trash" size={20} color="red" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <FlatList
+                data={playlist.songs}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={
+                    <View className="flex-1 justify-center items-center mt-20">
+                        <Text className="text-gray-400">No songs in this playlist</Text>
+                    </View>
+                }
+                renderItem={({ item }) => (
+                    <View className="flex-row items-center justify-between border-b border-[#eee] py-3">
+                        <TouchableOpacity
+                            className="flex-1"
+                            onPress={() => play(item)}
+                        >
+                            <Text className="text-base font-semibold" numberOfLines={1}>{item.filename}</Text>
+                            <Text className="text-xs text-gray-500">
+                                {Math.floor(item.duration / 60)}:{String(Math.floor(item.duration % 60)).padStart(2, '0')}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => handleRemoveSong(item.id)} className="p-2">
+                            <FontAwesome name="minus-circle" size={20} color="#ff4444" />
+                        </TouchableOpacity>
+                    </View>
+                )}
+            />
+        </View>
+    );
+}

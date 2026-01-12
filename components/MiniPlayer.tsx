@@ -5,6 +5,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useAudioPlayer } from '../context/AudioPlayerContext';
 
 export default function MiniPlayer() {
@@ -13,7 +14,11 @@ export default function MiniPlayer() {
     if (!currentSong) return null;
 
     return (
-        <View className="absolute bottom-[75px] left-[10px] right-[10px]">
+        <Animated.View
+            entering={FadeInDown.springify()}
+            exiting={FadeOutDown.springify()}
+            className="absolute bottom-[75px] left-[10px] right-[10px]"
+        >
             <View className="bg-gray-200 rounded-3xl px-3 py-2.5 flex-row items-center shadow-sm elevation-2">
                 {/* 🎵 Artwork Placeholder */}
                 <View className="w-[42px] h-[42px] rounded-lg bg-[#e5e5e5] justify-center items-center">
@@ -43,7 +48,7 @@ export default function MiniPlayer() {
                     />
                 </TouchableOpacity>
             </View>
-        </View>
+        </Animated.View>
     );
 }
 

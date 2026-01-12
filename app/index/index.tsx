@@ -1,16 +1,18 @@
 // app/index/index.tsx
 
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as MediaLibrary from 'expo-media-library';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Button,
   FlatList,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import Animated, { FadeInDown, FadeOutDown, Layout } from 'react-native-reanimated';
+import AddToPlaylistModal from '../../components/AddToPlaylistModal';
 import LikeButton from '../../components/LikeButton';
 import { useAudioPlayer } from '../../context/AudioPlayerContext';
 
@@ -24,8 +26,15 @@ export default function MusicPlayerScreen() {
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [search, setSearch] = useState('');
   const [sortType, setSortType] = useState<'name' | 'duration'>('name');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const { play, currentSong } = useAudioPlayer();
+  const [addToPlaylistVisible, setAddToPlaylistVisible] = useState(false);
+  const [songToAdd, setSongToAdd] = useState<SongWithDuration | null>(null);
 
-  const { play } = useAudioPlayer();
+  const handleLongPress = (song: SongWithDuration) => {
+    setSongToAdd(song);
+    setAddToPlaylistVisible(true);
+  };
 
   useEffect(() => {
     loadSongs();
@@ -95,17 +104,24 @@ export default function MusicPlayerScreen() {
 
   return (
     <View className="flex-1 p-5 bg-white">
-      <View className="flex-row gap-2.5 mb-2.5">
-        <Button title="A–Z" onPress={() => setSortType('name')} />
-        <Button title="Duration" onPress={() => setSortType('duration')} />
+      <View className="flex-row mb-2.5 gap-2">
+        <TextInput
+          placeholder="Search songs..."
+          value={search}
+          onChangeText={setSearch}
+          className="flex-1 border border-[#ccc] p-2.5 rounded-lg"
+        />
+        <TouchableOpacity
+          onPress={() => setSortModalVisible(!sortModalVisible)}
+          className="justify-center items-center px-4 border border-[#ccc] rounded-lg bg-gray-50"
+        >
+          <FontAwesome
+            name="sort"
+            size={20}
+            color="#333"
+          />
+        </TouchableOpacity>
       </View>
-
-      <TextInput
-        placeholder="Search songs..."
-        value={search}
-        onChangeText={setSearch}
-        className="border border-[#ccc] p-2.5 mb-2.5 rounded-lg"
-      />
 
       <FlatList
         data={sorted}
@@ -115,6 +131,8 @@ export default function MusicPlayerScreen() {
             <TouchableOpacity
               className="flex-1 px-2.5"
               onPress={() => play(item)}
+              onLongPress={() => handleLongPress(item)}
+              delayLongPress={500}
             >
               <Text numberOfLines={1} className="text-base">
                 {item.filename}
@@ -127,6 +145,43 @@ export default function MusicPlayerScreen() {
             <LikeButton song={item} />
           </View>
         )}
+      />
+      {sortModalVisible && (
+        <Animated.View
+          layout={Layout.springify()}
+          entering={FadeInDown.springify()}
+          exiting={FadeOutDown.springify()}
+          className="absolute left-2.5 right-2.5 h-[54px] bg-gray-200 rounded-3xl flex-row items-center justify-around shadow-lg elevation-[12] z-50"
+          style={{ bottom: currentSong ? 150 : 80 }}
+        >
+          <Text className="font-bold ml-4">Sort by:</Text>
+          <View className="flex-row gap-4 mr-4">
+            <TouchableOpacity
+              onPress={() => {
+                setSortType('name');
+                setSortModalVisible(false);
+              }}
+              className={`px-3 py-1 rounded-full ${sortType === 'name' ? 'bg-white shadow-sm' : ''}`}
+            >
+              <Text className={sortType === 'name' ? 'font-bold' : 'text-gray-600'}>Name</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setSortType('duration');
+                setSortModalVisible(false);
+              }}
+              className={`px-3 py-1 rounded-full ${sortType === 'duration' ? 'bg-white shadow-sm' : ''}`}
+            >
+              <Text className={sortType === 'duration' ? 'font-bold' : 'text-gray-600'}>Duration</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
+
+      <AddToPlaylistModal
+        visible={addToPlaylistVisible}
+        onClose={() => setAddToPlaylistVisible(false)}
+        song={songToAdd}
       />
     </View>
   );

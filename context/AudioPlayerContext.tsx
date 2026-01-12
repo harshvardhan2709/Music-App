@@ -23,20 +23,16 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     /* ▶️ PLAY NEW SONG */
     const play = async (song: any) => {
         try {
-            // Same song → just resume
+            setCurrentSong(song);
+            setIsPlaying(true);
             if (currentSong?.id === song.id && sound) {
-                setIsPlaying(true);
-                setTimeout(async () => {
-                    try {
-                        await sound.playAsync();
-                    } catch (e) {
-                        console.log('[AudioPlayer] resume error', e);
-                    }
-                }, 0);
+                const status = await sound.getStatusAsync();
+                if (status.isLoaded && status.isPlaying) return;
+
+                await sound.playAsync();
                 return;
             }
 
-            // New song → unload old
             if (sound) {
                 await sound.stopAsync();
                 await sound.unloadAsync();
@@ -50,10 +46,10 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
             );
 
             setSound(newSound);
-            setCurrentSong(song);
-            setIsPlaying(true);
+
         } catch (e) {
             console.log('[AudioPlayer] play error', e);
+            setIsPlaying(false);
         }
     };
 
@@ -63,22 +59,20 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
         if (isPlaying) {
             setIsPlaying(false);
-            setTimeout(async () => {
-                try {
-                    await sound.pauseAsync();
-                } catch (e) {
-                    console.log('[AudioPlayer] pause error', e);
-                }
-            }, 0);
+            try {
+                await sound.pauseAsync();
+            } catch (e) {
+                console.log('[AudioPlayer] pause error', e);
+                setIsPlaying(true);
+            }
         } else {
             setIsPlaying(true);
-            setTimeout(async () => {
-                try {
-                    await sound.playAsync();
-                } catch (e) {
-                    console.log('[AudioPlayer] play error', e);
-                }
-            }, 0);
+            try {
+                await sound.playAsync();
+            } catch (e) {
+                console.log('[AudioPlayer] play error', e);
+                setIsPlaying(false);
+            }
         }
     };
 
