@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,17 +13,21 @@ import { PlaylistsProvider } from '../context/PlaylistsContext';
 import '../global.css';
 
 export default function TabsLayout() {
+  const { colorScheme } = useColorScheme();
+  const iconColor = colorScheme === 'dark' ? '#ffffff' : '#000000ff';
+  const inactiveColor = colorScheme === 'dark' ? '#999' : '#666';
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <LikesProvider>
         <PlaylistsProvider>
           <AudioPlayerProvider>
-            <StatusBar />
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
 
             <Tabs
               screenOptions={{
-                tabBarActiveTintColor: '#000000ff',
-                tabBarInactiveTintColor: '#666',
+                tabBarActiveTintColor: iconColor,
+                tabBarInactiveTintColor: inactiveColor,
 
                 tabBarStyle: {
                   position: 'absolute',
@@ -36,7 +41,7 @@ export default function TabsLayout() {
                     entering={FadeInDown.springify()}
                     className="absolute bottom-3 left-2.5 right-2.5"
                   >
-                    <View className="h-[54px] bg-gray-200  rounded-3xl py-3 shadow-lg elevation-[12] shadow-black/15" />
+                    <View className="h-[54px] bg-gray-200 dark:bg-gray-900 rounded-3xl py-3 shadow-lg elevation-[12] shadow-black/15" />
                   </Animated.View>
                 ),
 

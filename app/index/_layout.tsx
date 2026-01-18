@@ -8,7 +8,7 @@ export default function TabsLayout() {
     console.log("Current path:", pathname);
     return (
         <Stack screenOptions={{ animation: pathname.startsWith("/index") ? "default" : "none", }}>
-            <Stack.Screen name="index" options={{ title: "Queue" }} />
+            <Stack.Screen name="index" options={{ title: "Queue", headerShown: false }} />
         </Stack>
     );
 }

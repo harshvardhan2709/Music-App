@@ -40,17 +40,17 @@ export default function AddToPlaylistModal({
             <TouchableWithoutFeedback onPress={onClose}>
                 <View className="flex-1 justify-end">
                     <TouchableWithoutFeedback>
-                        <View className="bg-white rounded-t-3xl p-5 h-1/2">
+                        <View className="bg-white dark:bg-gray-900 rounded-t-3xl p-5 h-1/2">
                             <View className="flex-row justify-between items-center mb-4">
-                                <Text className="text-xl font-bold">Add to Playlist</Text>
+                                <Text className="text-xl font-bold text-black dark:text-white">Add to Playlist</Text>
                                 <TouchableOpacity onPress={onClose}>
                                     <FontAwesome name="times" size={24} color="#666" />
                                 </TouchableOpacity>
                             </View>
 
                             <View className="mb-4">
-                                <Text className="text-gray-500">
-                                    Adding: <Text className="font-semibold text-black">{song?.filename}</Text>
+                                <Text className="text-gray-500 dark:text-gray-400">
+                                    Adding: <Text className="font-semibold text-black dark:text-white">{song?.filename}</Text>
                                 </Text>
                             </View>
 
@@ -64,15 +64,15 @@ export default function AddToPlaylistModal({
                                 }
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        className="flex-row items-center py-4 border-b border-gray-100"
+                                        className="flex-row items-center py-4 border-b border-gray-100 dark:border-gray-800"
                                         onPress={() => handleSelectPlaylist(item.id)}
                                     >
-                                        <View className="bg-gray-200 w-12 h-12 rounded-lg justify-center items-center mr-4">
+                                        <View className="bg-gray-200 dark:bg-gray-800 w-12 h-12 rounded-lg justify-center items-center mr-4">
                                             <FontAwesome name="music" size={20} color="#666" />
                                         </View>
                                         <View>
-                                            <Text className="font-semibold text-lg">{item.name}</Text>
-                                            <Text className="text-gray-500 text-sm">
+                                            <Text className="font-semibold text-lg text-black dark:text-white">{item.name}</Text>
+                                            <Text className="text-gray-500 dark:text-gray-400 text-sm">
                                                 {item.songs.length} songs
                                             </Text>
                                         </View>
