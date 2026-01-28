@@ -16,10 +16,6 @@ export default function TabsLayout() {
                 options={{ title: "My Library", headerShown: false }}
             />
             <Stack.Screen name="[id]" options={{ headerShown: false }} />
-            <Stack.Screen
-                name="nested"
-                options={{ title: "Feel-good-songs", headerShown: false }}
-            />
         </Stack>
     );
 }
