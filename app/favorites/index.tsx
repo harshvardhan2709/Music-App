@@ -29,7 +29,7 @@ export default function FavoritesScreen() {
                     <View className="flex-row items-center justify-between py-2 border-b border-[#eee] dark:border-gray-800">
                         <TouchableOpacity
                             className="flex-1 pr-2.5"
-                            onPress={() => play(item)}
+                            onPress={() => play(item, liked)}
                         >
                             <Text
                                 numberOfLines={1}

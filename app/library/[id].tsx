@@ -119,7 +119,7 @@ export default function PlaylistDetailScreen() {
                 }
                 renderItem={({ item }) => (
                     <View className="flex-row items-center justify-between border-b border-[#eee] dark:border-gray-800 py-3">
-                        <TouchableOpacity className="flex-1" onPress={() => play(item)}>
+                        <TouchableOpacity className="flex-1" onPress={() => play(item, playlist.songs)}>
                             <Text
                                 className="text-base font-semibold text-black dark:text-white"
                                 numberOfLines={1}

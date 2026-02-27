@@ -127,7 +127,7 @@ export default function MusicPlayerScreen() {
           placeholderTextColor="rgba(255, 255, 255, 0.6)"
           value={search}
           onChangeText={setSearch}
-          className="flex-1 bg-white/20 border border-white/30 p-2.5 rounded-2xl text-white placeholder:text-white/60"
+          className="flex-1 bg-primary/20 border border-white/30 p-2.5 rounded-2xl text-white placeholder:text-white/60"
         />
         <TouchableOpacity
           onPress={() => setSortModalVisible(!sortModalVisible)}
@@ -144,7 +144,7 @@ export default function MusicPlayerScreen() {
           <View className="flex-row items-center justify-between border-b border-[#eee] dark:border-gray-800 py-2">
             <TouchableOpacity
               className="flex-1 px-2.5"
-              onPress={() => play(item)}
+              onPress={() => play(item, sorted)}
               onLongPress={() => handleLongPress(item)}
               delayLongPress={500}
             >

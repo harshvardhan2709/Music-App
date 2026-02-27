@@ -32,7 +32,7 @@ export default function FeaturesScreen() {
                         onPress={() => router.push("/share")}
                         className="bg-primary px-8 py-3 rounded-full flex-1 flex-row items-center justify-center gap-2"
                     >
-                        <FontAwesome name="share" size={16} className="color-white" />
+                        <FontAwesome name="share" size={16} color="white" />
                         <Text className="text-white font-semibold">Share Music</Text>
                     </TouchableOpacity>
                 </View>

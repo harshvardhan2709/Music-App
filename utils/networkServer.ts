@@ -22,6 +22,7 @@ export interface FileMetadata {
   name: string;
   size: number;
   type: string;
+  base64Size?: number;
 }
 
 export interface TransferProgress {
@@ -86,10 +87,18 @@ export async function sendFile(
     const fileName = fileUri.split("/").pop() || "unknown";
     const fileSize = fileInfo.size || 0;
 
+    // Read file content using legacy API (new File API has issues with special characters)
+    const fileContent = await FileSystemLegacy.readAsStringAsync(fileUri, {
+      encoding: FileSystemLegacy.EncodingType.Base64,
+    });
+
+    const totalBytes = fileContent.length;
+
     // Send metadata first
     const metadata: FileMetadata = {
       name: fileName,
       size: fileSize,
+      base64Size: totalBytes,
       type: "audio/mpeg",
     };
 
@@ -113,13 +122,7 @@ export async function sendFile(
       });
     });
 
-    // Read file content using legacy API (new File API has issues with special characters)
-    const fileContent = await FileSystemLegacy.readAsStringAsync(fileUri, {
-      encoding: FileSystemLegacy.EncodingType.Base64,
-    });
-
     let bytesSent = 0;
-    const totalBytes = fileContent.length;
 
     for (let i = 0; i < totalBytes; i += CHUNK_SIZE) {
       const chunk = fileContent.slice(i, Math.min(i + CHUNK_SIZE, totalBytes));
@@ -139,7 +142,7 @@ export async function sendFile(
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
-    // Send end marker
+    // Send end marker for older clients
     socket.write("\nEND_OF_FILE\n");
     console.log("File sent successfully");
   } catch (error) {
@@ -212,11 +215,35 @@ export async function receiveFile(
         }
       } else {
         // Receiving file data
-        if (chunk.includes("END_OF_FILE")) {
-          // File transfer complete
-          receivedData += chunk.split("END_OF_FILE")[0];
+        receivedData += chunk;
+      }
+
+      if (metadataReceived && metadata) {
+        const expectedBase64Size = metadata.base64Size || 0;
+
+        if (onProgress) {
+          const pbBytes = expectedBase64Size || metadata.size;
+          onProgress({
+            bytesTransferred: receivedData.length,
+            totalBytes: pbBytes,
+            percentage: (receivedData.length / pbBytes) * 100,
+          });
+        }
+
+        const isComplete =
+          expectedBase64Size > 0
+            ? receivedData.length >= expectedBase64Size
+            : receivedData.includes("END_OF_FILE");
+
+        if (isComplete) {
+          if (receivedData.includes("END_OF_FILE")) {
+            receivedData = receivedData.split("END_OF_FILE")[0];
+          }
 
           try {
+            // Remove any whitespace that could corrupt base64
+            const cleanBase64 = receivedData.replace(/[\n\r\s]/g, "");
+
             // Save file to local storage using legacy API for base64 writing
             const fileName = metadata?.name || `received_${Date.now()}.mp3`;
             const cacheDir = getCacheDirectory();
@@ -230,7 +257,7 @@ export async function receiveFile(
             console.log("Saving file to:", fileUri);
 
             // Use legacy API for writing base64 data
-            await FileSystemLegacy.writeAsStringAsync(fileUri, receivedData, {
+            await FileSystemLegacy.writeAsStringAsync(fileUri, cleanBase64, {
               encoding: FileSystemLegacy.EncodingType.Base64,
             });
 
@@ -239,16 +266,6 @@ export async function receiveFile(
           } catch (error) {
             console.error("Error saving received file:", error);
             reject(error);
-          }
-        } else {
-          receivedData += chunk;
-
-          if (onProgress && metadata) {
-            onProgress({
-              bytesTransferred: receivedData.length,
-              totalBytes: metadata.size,
-              percentage: (receivedData.length / metadata.size) * 100,
-            });
           }
         }
       }

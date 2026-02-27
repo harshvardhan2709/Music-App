@@ -101,7 +101,7 @@ export default function ShareScreen() {
             return (
                 <View className="flex-1 items-center justify-center p-6">
                     <View className="w-24 h-24 bg-primary rounded-full items-center justify-center mb-6 ">
-                        <FontAwesome name="share-alt" size={40} color="#74167dff" />
+                        <FontAwesome name="share-alt" size={40} color="white" />
                     </View>
                     <Text className="text-2xl font-bold text-black dark:text-white mb-2">
                         Share Music

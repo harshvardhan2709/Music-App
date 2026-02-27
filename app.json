@@ -32,7 +32,16 @@
     "web": {
       "output": "static"
     },
-    "plugins": ["expo-router", "expo-splash-screen", "expo-audio"],
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
