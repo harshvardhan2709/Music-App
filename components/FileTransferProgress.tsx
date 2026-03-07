@@ -15,32 +15,76 @@ export default function FileTransferProgress({
     const percentage = Math.min(Math.round(progress.percentage), 100);
 
     return (
-        <View className="p-6 bg-primary rounded-3xl">
-            <Text className="text-lg font-bold text-white mb-4 text-center">
+        <View
+            style={{
+                padding: 24,
+                borderRadius: 20,
+                backgroundColor: "rgba(25, 4, 25, 0.85)",
+                borderWidth: 1,
+                borderColor: "rgba(127, 25, 230, 0.25)",
+            }}
+        >
+            <Text
+                style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#c084fc",
+                    marginBottom: 16,
+                    textAlign: "center",
+                }}
+            >
                 Transferring File
             </Text>
 
             {fileName && (
-                <Text className="text-sm text-white/70 mb-4 text-center">
+                <Text
+                    style={{
+                        fontSize: 13,
+                        color: "rgba(255, 255, 255, 0.5)",
+                        marginBottom: 16,
+                        textAlign: "center",
+                    }}
+                >
                     {fileName}
                 </Text>
             )}
 
             {/* Progress Bar */}
-            <View className="w-full h-3 bg-white/20 rounded-full overflow-hidden mb-3">
+            <View
+                style={{
+                    width: "100%",
+                    height: 6,
+                    backgroundColor: "rgba(255, 255, 255, 0.08)",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                    marginBottom: 12,
+                }}
+            >
                 <View
-                    className="h-full bg-white rounded-full transition-all"
-                    style={{ width: `${percentage}%` }}
+                    style={{
+                        height: "100%",
+                        borderRadius: 3,
+                        backgroundColor: "#7f19e6",
+                        width: `${percentage}%`,
+                    }}
                 />
             </View>
 
             {/* Progress Info */}
-            <View className="flex-row justify-between items-center">
-                <Text className="text-sm text-white/70">
+            <View
+                style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                }}
+            >
+                <Text style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.4)" }}>
                     {formatBytes(progress.bytesTransferred)} /{" "}
                     {formatBytes(progress.totalBytes)}
                 </Text>
-                <Text className="text-sm font-bold text-white">{percentage}%</Text>
+                <Text style={{ fontSize: 12, fontWeight: "700", color: "#c084fc" }}>
+                    {percentage}%
+                </Text>
             </View>
         </View>
     );

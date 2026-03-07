@@ -2,6 +2,7 @@
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as MediaLibrary from "expo-media-library";
+import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useEffect, useState } from "react";
 import {
@@ -27,6 +28,7 @@ type SongWithDuration = MediaLibrary.Asset & {
 
 export default function MusicPlayerScreen() {
   const { colorScheme } = useColorScheme();
+  const router = useRouter();
   const [songs, setSongs] = useState<SongWithDuration[]>([]);
   const [loading, setLoading] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -83,12 +85,11 @@ export default function MusicPlayerScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
-        <ActivityIndicator
-          size="large"
-          color={colorScheme === "dark" ? "#fff" : "#000"}
-        />
-        <Text className="text-black dark:text-white mt-2">
+      <View className="flex-1 justify-center items-center bg-surface">
+        <View className="w-16 h-16 rounded-full bg-accent/20 justify-center items-center mb-4">
+          <ActivityIndicator size="large" color="#7f19e6" />
+        </View>
+        <Text className="text-white/70 mt-2 text-sm">
           Scanning device audio...
         </Text>
       </View>
@@ -97,9 +98,15 @@ export default function MusicPlayerScreen() {
 
   if (permissionDenied) {
     return (
-      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
-        <Text className="text-black dark:text-white">
-          Permission required to access audio files.
+      <View className="flex-1 justify-center items-center bg-surface">
+        <View className="w-20 h-20 rounded-full bg-red-500/20 justify-center items-center mb-4">
+          <FontAwesome name="lock" size={32} color="#ef4444" />
+        </View>
+        <Text className="text-white font-bold text-lg mb-2">
+          Permission Required
+        </Text>
+        <Text className="text-white/50 text-center px-8">
+          Please grant access to your audio files to use this app.
         </Text>
       </View>
     );
@@ -115,75 +122,201 @@ export default function MusicPlayerScreen() {
       : (b.realDuration ?? 0) - (a.realDuration ?? 0),
   );
 
+  const isCurrentSong = (item: SongWithDuration) =>
+    currentSong?.id === item.id;
+
   return (
-    <View className="flex-1 p-5 bg-white dark:bg-black pt-12">
-      <View className="bg-primary p-4 rounded-3xl mb-4">
-        <Text className="text-xl font-bold text-center text-white">Queue</Text>
-      </View>
-
-      <View className="flex-row mb-5 gap-2 bg-primary p-3 rounded-3xl items-center">
-        <TextInput
-          placeholder="Search songs..."
-          placeholderTextColor="rgba(255, 255, 255, 0.6)"
-          value={search}
-          onChangeText={setSearch}
-          className="flex-1 bg-primary/20 border border-white/30 p-2.5 rounded-2xl text-white placeholder:text-white/60"
-        />
-        <TouchableOpacity
-          onPress={() => setSortModalVisible(!sortModalVisible)}
-          className="justify-center items-center w-10 h-10 rounded-full bg-white/20 border border-white/30"
+    <View className="flex-1 bg-surface pt-12">
+      {/* Header */}
+      <View className="px-5 mb-4">
+        <View
+          style={{
+            backgroundColor: "rgba(25, 4, 25, 0.85)",
+            borderWidth: 1,
+            borderColor: "rgba(127, 25, 230, 0.25)",
+            borderRadius: 24,
+            padding: 16,
+          }}
         >
-          <FontAwesome name="sort" size={18} color="#ffffff" />
-        </TouchableOpacity>
+          <Text className="text-xl font-bold text-center text-neon-purple">
+            Home
+          </Text>
+        </View>
       </View>
 
+      {/* Search Bar */}
+      <View className="px-5 mb-4">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            backgroundColor: "rgba(25, 4, 25, 0.85)",
+            borderWidth: 1,
+            borderColor: "rgba(127, 25, 230, 0.2)",
+            borderRadius: 24,
+            padding: 12,
+          }}
+        >
+          <FontAwesome name="search" size={14} color="rgba(192, 132, 252, 0.6)" />
+          <TextInput
+            placeholder="Search songs..."
+            placeholderTextColor="rgba(192, 132, 252, 0.4)"
+            value={search}
+            onChangeText={setSearch}
+            style={{
+              flex: 1,
+              color: "#ffffff",
+              fontSize: 14,
+              paddingVertical: 2,
+            }}
+          />
+          <TouchableOpacity
+            onPress={() => setSortModalVisible(!sortModalVisible)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "rgba(127, 25, 230, 0.2)",
+              borderWidth: 1,
+              borderColor: "rgba(127, 25, 230, 0.3)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <FontAwesome name="sort" size={16} color="#c084fc" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Song List */}
       <FlatList
         data={sorted}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
         renderItem={({ item }) => (
-          <View className="flex-row items-center justify-between border-b border-[#eee] dark:border-gray-800 py-2">
-            <TouchableOpacity
-              className="flex-1 px-2.5"
-              onPress={() => play(item, sorted)}
-              onLongPress={() => handleLongPress(item)}
-              delayLongPress={500}
+          <TouchableOpacity
+            onPress={() => play(item, sorted)}
+            onLongPress={() => handleLongPress(item)}
+            delayLongPress={500}
+            activeOpacity={0.7}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                marginBottom: 6,
+                borderRadius: 16,
+                backgroundColor: isCurrentSong(item)
+                  ? "rgba(127, 25, 230, 0.15)"
+                  : "rgba(255, 255, 255, 0.03)",
+                borderWidth: isCurrentSong(item) ? 1 : 0,
+                borderColor: isCurrentSong(item)
+                  ? "rgba(127, 25, 230, 0.4)"
+                  : "transparent",
+              }}
             >
-              <Text
-                numberOfLines={1}
-                className="text-base text-black dark:text-white"
+              {/* Album Art Placeholder */}
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginRight: 12,
+                  backgroundColor: isCurrentSong(item)
+                    ? "rgba(127, 25, 230, 0.3)"
+                    : "rgba(127, 25, 230, 0.1)",
+                }}
               >
-                {item.filename}
-              </Text>
-              <Text className="text-xs text-[#666] dark:text-gray-400">
-                {formatDuration(item.realDuration)}
-              </Text>
-            </TouchableOpacity>
+                <FontAwesome
+                  name={isCurrentSong(item) ? "volume-up" : "music"}
+                  size={isCurrentSong(item) ? 16 : 18}
+                  color={isCurrentSong(item) ? "#c084fc" : "#7f19e6"}
+                />
+              </View>
 
-            <LikeButton song={item} />
-          </View>
+              {/* Song Info */}
+              <View style={{ flex: 1 }}>
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: isCurrentSong(item) ? "700" : "500",
+                    color: isCurrentSong(item) ? "#c084fc" : "#ffffff",
+                  }}
+                >
+                  {item.filename}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255, 255, 255, 0.4)",
+                    marginTop: 2,
+                  }}
+                >
+                  {formatDuration(item.realDuration)}
+                </Text>
+              </View>
+
+              {/* Like Button */}
+              <LikeButton song={item} />
+            </View>
+          </TouchableOpacity>
         )}
       />
+
+      {/* Sort Modal */}
       {sortModalVisible && (
         <Animated.View
           layout={Layout.springify()}
           entering={FadeInDown.springify()}
           exiting={FadeOutDown.springify()}
-          className="absolute left-2.5 right-2.5 h-[54px] bg-primary rounded-3xl flex-row items-center justify-around shadow-lg elevation-[12] z-50"
-          style={{ bottom: currentSong ? 150 : 80 }}
+          style={{
+            position: "absolute",
+            left: 10,
+            right: 10,
+            height: 54,
+            borderRadius: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-around",
+            backgroundColor: "rgba(25, 4, 25, 0.95)",
+            borderWidth: 1,
+            borderColor: "rgba(127, 25, 230, 0.3)",
+
+            bottom: currentSong ? 150 : 80,
+            zIndex: 50,
+          }}
         >
-          <Text className="font-bold ml-4 text-white">Sort by:</Text>
+          <Text className="font-bold ml-4 text-neon-purple">Sort by:</Text>
           <View className="flex-row gap-4 mr-4">
             <TouchableOpacity
               onPress={() => {
                 setSortType("name");
                 setSortModalVisible(false);
               }}
-              className={`px-3 py-1 rounded-full ${sortType === "name" ? "bg-white/30 shadow-sm" : ""}`}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 20,
+                backgroundColor:
+                  sortType === "name"
+                    ? "rgba(127, 25, 230, 0.3)"
+                    : "transparent",
+              }}
             >
               <Text
-                className={
-                  sortType === "name" ? "font-bold text-white" : "text-white/60"
-                }
+                style={{
+                  fontWeight: sortType === "name" ? "700" : "400",
+                  color:
+                    sortType === "name"
+                      ? "#c084fc"
+                      : "rgba(255, 255, 255, 0.5)",
+                }}
               >
                 Name
               </Text>
@@ -193,14 +326,24 @@ export default function MusicPlayerScreen() {
                 setSortType("duration");
                 setSortModalVisible(false);
               }}
-              className={`px-3 py-1 rounded-full ${sortType === "duration" ? "bg-white/30 shadow-sm" : ""}`}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 20,
+                backgroundColor:
+                  sortType === "duration"
+                    ? "rgba(127, 25, 230, 0.3)"
+                    : "transparent",
+              }}
             >
               <Text
-                className={
-                  sortType === "duration"
-                    ? "font-bold text-white"
-                    : "text-white/60"
-                }
+                style={{
+                  fontWeight: sortType === "duration" ? "700" : "400",
+                  color:
+                    sortType === "duration"
+                      ? "#c084fc"
+                      : "rgba(255, 255, 255, 0.5)",
+                }}
               >
                 Duration
               </Text>
@@ -208,6 +351,26 @@ export default function MusicPlayerScreen() {
           </View>
         </Animated.View>
       )}
+      {/* Floating Queue Button */}
+      <TouchableOpacity
+        onPress={() => router.push("/queue" as any)}
+        style={{
+          position: "absolute",
+          right: 20,
+          bottom: currentSong ? 150 : 80,
+          width: 52,
+          height: 52,
+          borderRadius: 26,
+          backgroundColor: "rgba(127, 25, 230, 0.3)",
+          borderWidth: 1,
+          borderColor: "rgba(127, 25, 230, 0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 40,
+        }}
+      >
+        <FontAwesome name="list-ul" size={20} color="#c084fc" />
+      </TouchableOpacity>
 
       <AddToPlaylistModal
         visible={addToPlaylistVisible}

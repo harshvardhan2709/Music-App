@@ -34,7 +34,7 @@ const PlaylistsContext = createContext<PlaylistsContextType>({
     removeSongFromPlaylist: async () => { },
 });
 
-const STORAGE_KEY = 'my-app-playlists';
+const STORAGE_KEY = 'Msick-playlists';
 
 export function PlaylistsProvider({ children }: { children: React.ReactNode }) {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);

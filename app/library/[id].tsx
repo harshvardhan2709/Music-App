@@ -19,7 +19,6 @@ export default function PlaylistDetailScreen() {
     const { playlists, renamePlaylist, deletePlaylist, removeSongFromPlaylist } =
         usePlaylists();
     const { play } = useAudioPlayer();
-
     const { colorScheme } = useColorScheme();
 
     const playlist = playlists.find((p) => p.id === id);
@@ -34,8 +33,11 @@ export default function PlaylistDetailScreen() {
 
     if (!playlist) {
         return (
-            <View className="flex-1 justify-center items-center bg-white dark:bg-black">
-                <Text className="text-black dark:text-white">Playlist not found</Text>
+            <View className="flex-1 justify-center items-center bg-surface">
+                <FontAwesome name="question-circle" size={40} color="rgba(127, 25, 230, 0.3)" />
+                <Text style={{ color: "rgba(255, 255, 255, 0.5)", marginTop: 12, fontSize: 16 }}>
+                    Playlist not found
+                </Text>
             </View>
         );
     }
@@ -70,71 +72,153 @@ export default function PlaylistDetailScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white dark:bg-black p-5 pt-14">
+        <View className="flex-1 bg-surface pt-14">
             {/* Header */}
-            <View className="flex-row items-center justify-between mb-5 bg-primary p-4 rounded-3xl">
-                <TouchableOpacity onPress={() => router.back()} className="p-2">
-                    <FontAwesome name="arrow-left" size={20} color="white" />
-                </TouchableOpacity>
+            <View className="px-5 mb-5">
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        backgroundColor: "rgba(25, 4, 25, 0.85)",
+                        borderWidth: 1,
+                        borderColor: "rgba(127, 25, 230, 0.25)",
+                        borderRadius: 24,
+                        padding: 16,
+                    }}
+                >
+                    <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
+                        <FontAwesome name="arrow-left" size={18} color="#c084fc" />
+                    </TouchableOpacity>
 
-                {isEditing ? (
-                    <TextInput
-                        value={editedName}
-                        onChangeText={setEditedName}
-                        className="flex-1 mx-4 text-xl font-bold border-b border-white/30 text-white"
-                        autoFocus
-                        onBlur={handleRename}
-                        onSubmitEditing={handleRename}
-                    />
-                ) : (
-                    <Text
-                        className="text-2xl font-bold flex-1 mx-4 text-center text-white"
-                        numberOfLines={1}
-                    >
-                        {playlist.name}
-                    </Text>
-                )}
-
-                <View className="flex-row gap-4">
-                    <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-                        <FontAwesome
-                            name="pencil"
-                            size={20}
-                            color={isEditing ? "#60a5fa" : "white"}
+                    {isEditing ? (
+                        <TextInput
+                            value={editedName}
+                            onChangeText={setEditedName}
+                            style={{
+                                flex: 1,
+                                marginHorizontal: 16,
+                                fontSize: 18,
+                                fontWeight: "700",
+                                borderBottomWidth: 1,
+                                borderBottomColor: "rgba(127, 25, 230, 0.4)",
+                                color: "#ffffff",
+                            }}
+                            autoFocus
+                            onBlur={handleRename}
+                            onSubmitEditing={handleRename}
                         />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleDelete}>
-                        <FontAwesome name="trash" size={20} color="#ff4444" />
-                    </TouchableOpacity>
+                    ) : (
+                        <Text
+                            style={{
+                                fontSize: 20,
+                                fontWeight: "700",
+                                flex: 1,
+                                marginHorizontal: 16,
+                                textAlign: "center",
+                                color: "#c084fc",
+                            }}
+                            numberOfLines={1}
+                        >
+                            {playlist.name}
+                        </Text>
+                    )}
+
+                    <View style={{ flexDirection: "row", gap: 16 }}>
+                        <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+                            <FontAwesome
+                                name="pencil"
+                                size={18}
+                                color={isEditing ? "#7f19e6" : "#c084fc"}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleDelete}>
+                            <FontAwesome name="trash" size={18} color="#ff4444" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
 
             <FlatList
                 data={playlist.songs}
                 keyExtractor={(item) => item.id}
+                contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
                 ListEmptyComponent={
                     <View className="flex-1 justify-center items-center mt-20">
-                        <Text className="text-gray-400">No songs in this playlist</Text>
+                        <FontAwesome
+                            name="music"
+                            size={40}
+                            color="rgba(127, 25, 230, 0.2)"
+                        />
+                        <Text
+                            style={{
+                                color: "rgba(255, 255, 255, 0.4)",
+                                marginTop: 12,
+                                fontSize: 15,
+                            }}
+                        >
+                            No songs in this playlist
+                        </Text>
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <View className="flex-row items-center justify-between border-b border-[#eee] dark:border-gray-800 py-3">
-                        <TouchableOpacity className="flex-1" onPress={() => play(item, playlist.songs)}>
-                            <Text
-                                className="text-base font-semibold text-black dark:text-white"
-                                numberOfLines={1}
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            paddingVertical: 12,
+                            paddingHorizontal: 14,
+                            marginBottom: 6,
+                            borderRadius: 16,
+                            backgroundColor: "rgba(255, 255, 255, 0.03)",
+                        }}
+                    >
+                        <TouchableOpacity
+                            style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
+                            onPress={() => play(item, playlist.songs)}
+                        >
+                            {/* Album Art Placeholder */}
+                            <View
+                                style={{
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 10,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    marginRight: 12,
+                                    backgroundColor: "rgba(127, 25, 230, 0.1)",
+                                }}
                             >
-                                {item.filename}
-                            </Text>
-                            <Text className="text-xs text-gray-500 dark:text-gray-400">
-                                {Math.floor(item.duration / 60)}:
-                                {String(Math.floor(item.duration % 60)).padStart(2, "0")}
-                            </Text>
+                                <FontAwesome name="music" size={18} color="#7f19e6" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text
+                                    style={{
+                                        fontSize: 15,
+                                        fontWeight: "600",
+                                        color: "#ffffff",
+                                    }}
+                                    numberOfLines={1}
+                                >
+                                    {item.filename}
+                                </Text>
+                                <Text
+                                    style={{
+                                        fontSize: 12,
+                                        color: "rgba(255, 255, 255, 0.4)",
+                                        marginTop: 2,
+                                    }}
+                                >
+                                    {Math.floor(item.duration / 60)}:
+                                    {String(Math.floor(item.duration % 60)).padStart(2, "0")}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             onPress={() => handleRemoveSong(item.id)}
-                            className="p-2"
+                            style={{ padding: 8 }}
                         >
                             <FontAwesome name="minus-circle" size={20} color="#ff4444" />
                         </TouchableOpacity>

@@ -34,7 +34,6 @@ export default function ShareScreen() {
     const [showSongSelector, setShowSongSelector] = useState(false);
     const [selectedSong, setSelectedSong] = useState<any>(null);
 
-    // Handle start server
     const handleStartServer = async () => {
         try {
             await startServer();
@@ -43,19 +42,15 @@ export default function ShareScreen() {
         }
     };
 
-    // Handle stop server
     const handleStopServer = () => {
         stopServer();
         setSelectedSong(null);
     };
 
-    // Handle song selection
     const handleSongSelect = async (song: any) => {
         setSelectedSong(song);
         setShowSongSelector(false);
-
         if (isConnected) {
-            // If already connected, start sharing immediately
             try {
                 await shareFile(song.uri);
             } catch (error) {
@@ -64,28 +59,19 @@ export default function ShareScreen() {
         }
     };
 
-    // Handle QR scan
     const handleQRScan = (ip: string, port: number) => {
         setShowScanner(false);
         connectToPeer(ip, port);
     };
 
-    // Handle save received file
     const handleSaveFile = async () => {
         if (!receivedFileUri) return;
-
         try {
             const fileName = fileMetadata?.name || `song_${Date.now()}.mp3`;
             const savedUri = await saveReceivedFile(receivedFileUri, fileName);
-
             if (savedUri) {
                 Alert.alert("Success!", "Song saved to your music library", [
-                    {
-                        text: "OK",
-                        onPress: () => {
-                            reset();
-                        },
-                    },
+                    { text: "OK", onPress: () => reset() },
                 ]);
             } else {
                 Alert.alert("Error", "Failed to save file to music library");
@@ -95,25 +81,62 @@ export default function ShareScreen() {
         }
     };
 
-    // Render Send Mode
     const renderSendMode = () => {
         if (!isServerRunning) {
             return (
                 <View className="flex-1 items-center justify-center p-6">
-                    <View className="w-24 h-24 bg-primary rounded-full items-center justify-center mb-6 ">
-                        <FontAwesome name="share-alt" size={40} color="white" />
+                    <View
+                        style={{
+                            width: 96,
+                            height: 96,
+                            borderRadius: 48,
+                            backgroundColor: "rgba(127, 25, 230, 0.15)",
+                            borderWidth: 1,
+                            borderColor: "rgba(127, 25, 230, 0.3)",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginBottom: 24,
+
+                        }}
+                    >
+                        <FontAwesome name="share-alt" size={40} color="#c084fc" />
                     </View>
-                    <Text className="text-2xl font-bold text-black dark:text-white mb-2">
+                    <Text
+                        style={{
+                            fontSize: 24,
+                            fontWeight: "700",
+                            color: "#ffffff",
+                            marginBottom: 8,
+                        }}
+                    >
                         Share Music
                     </Text>
-                    <Text className="text-gray-600 dark:text-gray-400 text-center mb-8">
+                    <Text
+                        style={{
+                            color: "rgba(255, 255, 255, 0.4)",
+                            textAlign: "center",
+                            marginBottom: 32,
+                            fontSize: 14,
+                        }}
+                    >
                         Start a server to share your music with nearby devices
                     </Text>
                     <TouchableOpacity
                         onPress={handleStartServer}
-                        className="bg-primary px-8 py-4 rounded-full"
+                        style={{
+                            paddingHorizontal: 40,
+                            paddingVertical: 16,
+                            borderRadius: 28,
+                            backgroundColor: "rgba(127, 25, 230, 0.25)",
+                            borderWidth: 1,
+                            borderColor: "rgba(127, 25, 230, 0.5)",
+                        }}
                     >
-                        <Text className="text-white font-bold text-lg">Start Server</Text>
+                        <Text
+                            style={{ color: "#c084fc", fontWeight: "700", fontSize: 16 }}
+                        >
+                            Start Server
+                        </Text>
                     </TouchableOpacity>
                 </View>
             );
@@ -122,10 +145,13 @@ export default function ShareScreen() {
         return (
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ flexGrow: 1, padding: 24, paddingBottom: 100 }}
+                contentContainerStyle={{
+                    flexGrow: 1,
+                    padding: 24,
+                    paddingBottom: 100,
+                }}
                 showsVerticalScrollIndicator={true}
             >
-                {/* Server Info */}
                 {serverInfo && (
                     <View className="mb-6">
                         <QRCodeDisplay serverInfo={serverInfo} />
@@ -133,13 +159,36 @@ export default function ShareScreen() {
                 )}
 
                 {/* Connection Status */}
-                <View className="bg-primary p-4 rounded-2xl mb-6">
-                    <View className="flex-row items-center">
+                <View
+                    style={{
+                        padding: 16,
+                        borderRadius: 16,
+                        marginBottom: 24,
+                        backgroundColor: isConnected
+                            ? "rgba(34, 197, 94, 0.1)"
+                            : "rgba(127, 25, 230, 0.1)",
+                        borderWidth: 1,
+                        borderColor: isConnected
+                            ? "rgba(34, 197, 94, 0.25)"
+                            : "rgba(127, 25, 230, 0.2)",
+                    }}
+                >
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
                         <View
-                            className={`w-3 h-3 rounded-full mr-3 ${isConnected ? "bg-green-500" : "bg-gray-400"
-                                }`}
+                            style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                marginRight: 12,
+                                backgroundColor: isConnected ? "#22c55e" : "#555555",
+                            }}
                         />
-                        <Text className="text-white font-semibold">
+                        <Text
+                            style={{
+                                color: isConnected ? "#22c55e" : "rgba(255, 255, 255, 0.5)",
+                                fontWeight: "600",
+                            }}
+                        >
                             {isConnected ? "Device Connected" : "Waiting for connection..."}
                         </Text>
                     </View>
@@ -149,24 +198,66 @@ export default function ShareScreen() {
                 {!selectedSong ? (
                     <TouchableOpacity
                         onPress={() => setShowSongSelector(true)}
-                        className="bg-primary px-6 py-4 rounded-full flex-row items-center justify-center mb-6"
+                        style={{
+                            paddingHorizontal: 24,
+                            paddingVertical: 16,
+                            borderRadius: 24,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: 24,
+                            backgroundColor: "rgba(127, 25, 230, 0.2)",
+                            borderWidth: 1,
+                            borderColor: "rgba(127, 25, 230, 0.4)",
+                        }}
                     >
-                        <FontAwesome name="music" size={20} color="white" />
-                        <Text className="text-white font-bold text-lg ml-2">
+                        <FontAwesome name="music" size={20} color="#c084fc" />
+                        <Text
+                            style={{
+                                color: "#c084fc",
+                                fontWeight: "700",
+                                fontSize: 16,
+                                marginLeft: 8,
+                            }}
+                        >
                             Select Song to Share
                         </Text>
                     </TouchableOpacity>
                 ) : (
-                    <View className="bg-white dark:bg-gray-900 p-4 rounded-2xl mb-6">
-                        <View className="flex-row items-center justify-between mb-3">
-                            <Text className="text-sm text-gray-600 dark:text-gray-400">
+                    <View
+                        style={{
+                            padding: 16,
+                            borderRadius: 16,
+                            marginBottom: 24,
+                            backgroundColor: "rgba(255, 255, 255, 0.03)",
+                            borderWidth: 1,
+                            borderColor: "rgba(127, 25, 230, 0.2)",
+                        }}
+                    >
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                marginBottom: 8,
+                            }}
+                        >
+                            <Text
+                                style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.4)" }}
+                            >
                                 Selected Song:
                             </Text>
                             <TouchableOpacity onPress={() => setSelectedSong(null)}>
-                                <FontAwesome name="times-circle" size={20} color="#999" />
+                                <FontAwesome
+                                    name="times-circle"
+                                    size={20}
+                                    color="rgba(255, 255, 255, 0.3)"
+                                />
                             </TouchableOpacity>
                         </View>
-                        <Text className="text-lg font-bold text-black dark:text-white">
+                        <Text
+                            style={{ fontSize: 16, fontWeight: "700", color: "#ffffff" }}
+                        >
                             {selectedSong.filename.replace(/\.[^/.]+$/, "")}
                         </Text>
                     </View>
@@ -184,8 +275,23 @@ export default function ShareScreen() {
 
                 {/* Error Message */}
                 {transferError && (
-                    <View className="bg-red-500/20 p-4 rounded-2xl mb-6">
-                        <Text className="text-red-600 dark:text-red-400 text-center">
+                    <View
+                        style={{
+                            padding: 16,
+                            borderRadius: 16,
+                            marginBottom: 24,
+                            backgroundColor: "rgba(239, 68, 68, 0.1)",
+                            borderWidth: 1,
+                            borderColor: "rgba(239, 68, 68, 0.2)",
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: "#ef4444",
+                                textAlign: "center",
+                                fontWeight: "500",
+                            }}
+                        >
                             {transferError}
                         </Text>
                     </View>
@@ -194,9 +300,23 @@ export default function ShareScreen() {
                 {/* Stop Server Button */}
                 <TouchableOpacity
                     onPress={handleStopServer}
-                    className="bg-red-950 px-6 py-4 rounded-full"
+                    style={{
+                        paddingHorizontal: 24,
+                        paddingVertical: 16,
+                        borderRadius: 24,
+                        backgroundColor: "rgba(239, 68, 68, 0.15)",
+                        borderWidth: 1,
+                        borderColor: "rgba(239, 68, 68, 0.3)",
+                    }}
                 >
-                    <Text className="text-white font-bold text-lg text-center">
+                    <Text
+                        style={{
+                            color: "#ef4444",
+                            fontWeight: "700",
+                            fontSize: 16,
+                            textAlign: "center",
+                        }}
+                    >
                         Stop Server
                     </Text>
                 </TouchableOpacity>
@@ -204,35 +324,77 @@ export default function ShareScreen() {
         );
     };
 
-    // Render Receive Mode
     const renderReceiveMode = () => {
         if (receivedFileUri) {
             return (
                 <View className="flex-1 items-center justify-center p-6">
-                    <View className="w-24 h-24 bg-green-500/20 rounded-full items-center justify-center mb-6">
+                    <View
+                        style={{
+                            width: 96,
+                            height: 96,
+                            borderRadius: 48,
+                            backgroundColor: "rgba(34, 197, 94, 0.15)",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginBottom: 24,
+                        }}
+                    >
                         <FontAwesome name="check-circle" size={40} color="#22c55e" />
                     </View>
-                    <Text className="text-2xl font-bold text-black dark:text-white mb-2">
+                    <Text
+                        style={{
+                            fontSize: 24,
+                            fontWeight: "700",
+                            color: "#ffffff",
+                            marginBottom: 8,
+                        }}
+                    >
                         Download Complete!
                     </Text>
                     {fileMetadata && (
-                        <Text className="text-gray-600 dark:text-gray-400 text-center mb-8">
+                        <Text
+                            style={{
+                                color: "rgba(255, 255, 255, 0.4)",
+                                textAlign: "center",
+                                marginBottom: 32,
+                            }}
+                        >
                             {fileMetadata.name}
                         </Text>
                     )}
                     <TouchableOpacity
                         onPress={handleSaveFile}
-                        className="bg-green-500 px-8 py-4 rounded-full mb-4"
+                        style={{
+                            paddingHorizontal: 32,
+                            paddingVertical: 16,
+                            borderRadius: 24,
+                            marginBottom: 12,
+                            backgroundColor: "rgba(34, 197, 94, 0.2)",
+                            borderWidth: 1,
+                            borderColor: "rgba(34, 197, 94, 0.4)",
+                        }}
                     >
-                        <Text className="text-white font-bold text-lg">
+                        <Text
+                            style={{ color: "#22c55e", fontWeight: "700", fontSize: 16 }}
+                        >
                             Save to Library
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={reset}
-                        className="bg-gray-200 dark:bg-gray-800 px-8 py-4 rounded-full"
+                        style={{
+                            paddingHorizontal: 32,
+                            paddingVertical: 16,
+                            borderRadius: 24,
+                            backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        }}
                     >
-                        <Text className="text-black dark:text-white font-semibold">
+                        <Text
+                            style={{
+                                color: "rgba(255, 255, 255, 0.6)",
+                                fontWeight: "600",
+                            }}
+                        >
                             Receive Another
                         </Text>
                     </TouchableOpacity>
@@ -243,20 +405,57 @@ export default function ShareScreen() {
         if (!isConnected) {
             return (
                 <View className="flex-1 items-center justify-center p-6">
-                    <View className="w-24 h-24 bg-purple-500/20 rounded-full items-center justify-center mb-6">
-                        <FontAwesome name="qrcode" size={40} color="#530a5dff" />
+                    <View
+                        style={{
+                            width: 96,
+                            height: 96,
+                            borderRadius: 48,
+                            backgroundColor: "rgba(168, 85, 247, 0.15)",
+                            borderWidth: 1,
+                            borderColor: "rgba(168, 85, 247, 0.3)",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            marginBottom: 24,
+                        }}
+                    >
+                        <FontAwesome name="qrcode" size={40} color="#a855f7" />
                     </View>
-                    <Text className="text-2xl font-bold text-black dark:text-white mb-2">
+                    <Text
+                        style={{
+                            fontSize: 24,
+                            fontWeight: "700",
+                            color: "#ffffff",
+                            marginBottom: 8,
+                        }}
+                    >
                         Receive Music
                     </Text>
-                    <Text className="text-gray-600 dark:text-gray-400 text-center mb-8">
+                    <Text
+                        style={{
+                            color: "rgba(255, 255, 255, 0.4)",
+                            textAlign: "center",
+                            marginBottom: 32,
+                            fontSize: 14,
+                        }}
+                    >
                         Scan the QR code shown on the sender's device
                     </Text>
                     <TouchableOpacity
                         onPress={() => setShowScanner(true)}
-                        className="bg-purple-500/20 px-8 py-4 rounded-full"
+                        style={{
+                            paddingHorizontal: 32,
+                            paddingVertical: 16,
+                            borderRadius: 24,
+                            backgroundColor: "rgba(168, 85, 247, 0.2)",
+                            borderWidth: 1,
+                            borderColor: "rgba(168, 85, 247, 0.4)",
+                        }}
                     >
-                        <Text className="text-white font-bold text-lg">Scan QR Code</Text>
+                        <Text
+                            style={{ color: "#a855f7", fontWeight: "700", fontSize: 16 }}
+                        >
+                            Scan QR Code
+                        </Text>
                     </TouchableOpacity>
                 </View>
             );
@@ -264,7 +463,6 @@ export default function ShareScreen() {
 
         return (
             <View className="flex-1 items-center justify-center p-6">
-                {/* Transfer Progress */}
                 {transferProgress && (
                     <View className="w-full mb-6">
                         <FileTransferProgress
@@ -274,68 +472,146 @@ export default function ShareScreen() {
                     </View>
                 )}
 
-                {/* Connection Status */}
-                <View className="bg-green-500/20 p-4 rounded-2xl mb-6">
-                    <View className="flex-row items-center justify-center">
-                        <View className="w-3 h-3 rounded-full bg-green-500 mr-3" />
-                        <Text className="text-green-700 dark:text-green-400 font-semibold">
+                <View
+                    style={{
+                        padding: 16,
+                        borderRadius: 16,
+                        marginBottom: 24,
+                        backgroundColor: "rgba(34, 197, 94, 0.1)",
+                        borderWidth: 1,
+                        borderColor: "rgba(34, 197, 94, 0.25)",
+                    }}
+                >
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <View
+                            style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: "#22c55e",
+                                marginRight: 12,
+                            }}
+                        />
+                        <Text
+                            style={{ color: "#22c55e", fontWeight: "600" }}
+                        >
                             Connected - Receiving file...
                         </Text>
                     </View>
                 </View>
 
-                {/* Error Message */}
                 {transferError && (
-                    <View className="bg-red-500/20 p-4 rounded-2xl mb-6">
-                        <Text className="text-red-600 dark:text-red-400 text-center">
+                    <View
+                        style={{
+                            padding: 16,
+                            borderRadius: 16,
+                            marginBottom: 24,
+                            backgroundColor: "rgba(239, 68, 68, 0.1)",
+                            borderWidth: 1,
+                            borderColor: "rgba(239, 68, 68, 0.2)",
+                        }}
+                    >
+                        <Text
+                            style={{ color: "#ef4444", textAlign: "center" }}
+                        >
                             {transferError}
                         </Text>
                     </View>
                 )}
 
-                {/* Cancel Button */}
                 <TouchableOpacity
                     onPress={() => {
                         disconnectFromPeer();
                         reset();
                     }}
-                    className="bg-red-500 px-8 py-4 rounded-full"
+                    style={{
+                        paddingHorizontal: 32,
+                        paddingVertical: 16,
+                        borderRadius: 24,
+                        backgroundColor: "rgba(239, 68, 68, 0.15)",
+                        borderWidth: 1,
+                        borderColor: "rgba(239, 68, 68, 0.3)",
+                    }}
                 >
-                    <Text className="text-white font-bold">Cancel</Text>
+                    <Text style={{ color: "#ef4444", fontWeight: "700" }}>Cancel</Text>
                 </TouchableOpacity>
             </View>
         );
     };
 
     return (
-        <View className="flex-1 bg-white dark:bg-black">
+        <View className="flex-1 bg-surface">
             {/* Header */}
-            <View className="bg-white dark:bg-black pt-12 pb-4 px-6 border-b border-gray-200 dark:border-gray-800">
-                <View className="flex-row items-center justify-between mb-4">
+            <View
+                style={{
+                    backgroundColor: "#0a0a0a",
+                    paddingTop: 48,
+                    paddingBottom: 16,
+                    paddingHorizontal: 24,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "rgba(127, 25, 230, 0.15)",
+                }}
+            >
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 16,
+                    }}
+                >
                     <TouchableOpacity onPress={() => router.back()}>
-                        <FontAwesome name="arrow-left" size={24} color="#999" />
+                        <FontAwesome name="arrow-left" size={22} color="#c084fc" />
                     </TouchableOpacity>
-                    <Text className="text-2xl font-bold text-black dark:text-white">
+                    <Text
+                        style={{ fontSize: 22, fontWeight: "700", color: "#ffffff" }}
+                    >
                         Share Music
                     </Text>
                     <View style={{ width: 24 }} />
                 </View>
 
                 {/* Tab Switcher */}
-                <View className="flex-row bg-gray-100 dark:bg-gray-900 rounded-full p-1">
+                <View
+                    style={{
+                        flexDirection: "row",
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
+                        borderRadius: 24,
+                        padding: 4,
+                    }}
+                >
                     <TouchableOpacity
                         onPress={() => {
                             setTabMode("send");
                             reset();
                         }}
-                        className={`flex-1 py-3 rounded-full ${tabMode === "send" ? "bg-primary" : "bg-transparent"
-                            }`}
+                        style={{
+                            flex: 1,
+                            paddingVertical: 12,
+                            borderRadius: 20,
+                            backgroundColor:
+                                tabMode === "send"
+                                    ? "rgba(127, 25, 230, 0.3)"
+                                    : "transparent",
+                            borderWidth: tabMode === "send" ? 1 : 0,
+                            borderColor: "rgba(127, 25, 230, 0.4)",
+                        }}
                     >
                         <Text
-                            className={`text-center font-semibold ${tabMode === "send"
-                                ? "text-white"
-                                : "text-gray-600 dark:text-gray-400"
-                                }`}
+                            style={{
+                                textAlign: "center",
+                                fontWeight: "600",
+                                color:
+                                    tabMode === "send"
+                                        ? "#c084fc"
+                                        : "rgba(255, 255, 255, 0.4)",
+                            }}
                         >
                             Send
                         </Text>
@@ -345,14 +621,27 @@ export default function ShareScreen() {
                             setTabMode("receive");
                             reset();
                         }}
-                        className={`flex-1 py-3 rounded-full ${tabMode === "receive" ? "bg-purple-500/20" : "bg-transparent"
-                            }`}
+                        style={{
+                            flex: 1,
+                            paddingVertical: 12,
+                            borderRadius: 20,
+                            backgroundColor:
+                                tabMode === "receive"
+                                    ? "rgba(168, 85, 247, 0.25)"
+                                    : "transparent",
+                            borderWidth: tabMode === "receive" ? 1 : 0,
+                            borderColor: "rgba(168, 85, 247, 0.4)",
+                        }}
                     >
                         <Text
-                            className={`text-center font-semibold ${tabMode === "receive"
-                                ? "text-white"
-                                : "text-gray-600 dark:text-gray-400"
-                                }`}
+                            style={{
+                                textAlign: "center",
+                                fontWeight: "600",
+                                color:
+                                    tabMode === "receive"
+                                        ? "#a855f7"
+                                        : "rgba(255, 255, 255, 0.4)",
+                            }}
                         >
                             Receive
                         </Text>

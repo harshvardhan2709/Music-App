@@ -10,6 +10,9 @@ type PlayerContextType = {
     playPrevious: () => void;
     setRepeatMode: () => void;
     toggleShuffle: () => void;
+    removeFromQueue: (index: number) => void;
+    moveInQueue: (fromIndex: number, toIndex: number) => void;
+    clearUpNext: () => void;
     isPlaying: boolean;
     currentSong: any | null;
     queue: any[];
@@ -26,6 +29,9 @@ const AudioPlayerContext = createContext<PlayerContextType>({
     playPrevious: () => { },
     setRepeatMode: () => { },
     toggleShuffle: () => { },
+    removeFromQueue: () => { },
+    moveInQueue: () => { },
+    clearUpNext: () => { },
     isPlaying: false,
     currentSong: null,
     queue: [],
@@ -252,6 +258,44 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         });
     }, [queue, currentIndex, currentSong, originalQueue]);
 
+    // Remove a song from the queue by index
+    const removeFromQueue = useCallback((index: number) => {
+        if (index === currentIndex) return; // Can't remove currently playing
+        setQueue(prev => {
+            const newQueue = [...prev];
+            newQueue.splice(index, 1);
+            return newQueue;
+        });
+        if (index < currentIndex) {
+            setCurrentIndex(prev => prev - 1);
+        }
+    }, [currentIndex]);
+
+    // Move a song in the queue from one index to another
+    const moveInQueue = useCallback((fromIndex: number, toIndex: number) => {
+        if (fromIndex === toIndex) return;
+        setQueue(prev => {
+            const newQueue = [...prev];
+            const [moved] = newQueue.splice(fromIndex, 1);
+            newQueue.splice(toIndex, 0, moved);
+            return newQueue;
+        });
+        // Adjust currentIndex if needed
+        if (fromIndex === currentIndex) {
+            setCurrentIndex(toIndex);
+        } else {
+            let newIdx = currentIndex;
+            if (fromIndex < currentIndex && toIndex >= currentIndex) newIdx--;
+            else if (fromIndex > currentIndex && toIndex <= currentIndex) newIdx++;
+            setCurrentIndex(newIdx);
+        }
+    }, [currentIndex]);
+
+    // Clear all songs after the current one
+    const clearUpNext = useCallback(() => {
+        setQueue(prev => prev.slice(0, currentIndex + 1));
+    }, [currentIndex]);
+
     const contextValue = React.useMemo(() => ({
         play,
         togglePlayPause,
@@ -259,6 +303,9 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         playPrevious,
         setRepeatMode,
         toggleShuffle,
+        removeFromQueue,
+        moveInQueue,
+        clearUpNext,
         isPlaying,
         currentSong,
         queue,
@@ -273,6 +320,9 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         playPrevious,
         setRepeatMode,
         toggleShuffle,
+        removeFromQueue,
+        moveInQueue,
+        clearUpNext,
         isPlaying,
         currentSong,
         currentIndex,

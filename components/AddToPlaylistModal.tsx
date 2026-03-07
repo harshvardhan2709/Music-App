@@ -38,22 +38,52 @@ export default function AddToPlaylistModal({
             onRequestClose={onClose}
         >
             <TouchableWithoutFeedback onPress={onClose}>
-                <View className="flex-1 justify-end">
+                <View style={{ flex: 1, justifyContent: "flex-end" }}>
                     <TouchableWithoutFeedback>
-                        <View className="bg-white dark:bg-gray-900 rounded-t-3xl p-5 h-1/2">
-                            <View className="flex-row justify-between items-center mb-4">
-                                <Text className="text-xl font-bold text-black dark:text-white">
+                        <View
+                            style={{
+                                backgroundColor: "#0a0a0a",
+                                borderTopLeftRadius: 28,
+                                borderTopRightRadius: 28,
+                                borderWidth: 1,
+                                borderColor: "rgba(127, 25, 230, 0.25)",
+                                borderBottomWidth: 0,
+                                padding: 20,
+                                height: "50%",
+                            }}
+                        >
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: 16,
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        fontSize: 20,
+                                        fontWeight: "700",
+                                        color: "#c084fc",
+                                    }}
+                                >
                                     Add to Playlist
                                 </Text>
                                 <TouchableOpacity onPress={onClose}>
-                                    <FontAwesome name="times" size={24} color="#666" />
+                                    <FontAwesome
+                                        name="times"
+                                        size={22}
+                                        color="rgba(255, 255, 255, 0.4)"
+                                    />
                                 </TouchableOpacity>
                             </View>
 
-                            <View className="mb-4">
-                                <Text className="text-gray-500 dark:text-gray-400">
+                            <View style={{ marginBottom: 16 }}>
+                                <Text style={{ color: "rgba(255, 255, 255, 0.4)" }}>
                                     Adding:{" "}
-                                    <Text className="font-semibold text-black dark:text-white">
+                                    <Text
+                                        style={{ fontWeight: "600", color: "#ffffff" }}
+                                    >
                                         {song?.filename}
                                     </Text>
                                 </Text>
@@ -63,23 +93,53 @@ export default function AddToPlaylistModal({
                                 data={playlists}
                                 keyExtractor={(item) => item.id}
                                 ListEmptyComponent={
-                                    <View className="items-center py-10">
-                                        <Text className="text-gray-400">No playlists found.</Text>
+                                    <View style={{ alignItems: "center", paddingVertical: 40 }}>
+                                        <Text style={{ color: "rgba(255, 255, 255, 0.4)" }}>
+                                            No playlists found.
+                                        </Text>
                                     </View>
                                 }
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
-                                        className="flex-row items-center py-4 border-b border-gray-100 dark:border-gray-800"
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            paddingVertical: 14,
+                                            borderBottomWidth: 1,
+                                            borderBottomColor: "rgba(255, 255, 255, 0.05)",
+                                        }}
                                         onPress={() => handleSelectPlaylist(item.id)}
                                     >
-                                        <View className="bg-primary w-12 h-12 rounded-lg justify-center items-center mr-4">
-                                            <FontAwesome name="music" size={20} color="#ffffff" />
+                                        <View
+                                            style={{
+                                                width: 44,
+                                                height: 44,
+                                                borderRadius: 10,
+                                                backgroundColor: "rgba(127, 25, 230, 0.15)",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                marginRight: 14,
+                                            }}
+                                        >
+                                            <FontAwesome name="music" size={18} color="#c084fc" />
                                         </View>
                                         <View>
-                                            <Text className="font-semibold text-lg text-black dark:text-white">
+                                            <Text
+                                                style={{
+                                                    fontWeight: "600",
+                                                    fontSize: 16,
+                                                    color: "#ffffff",
+                                                }}
+                                            >
                                                 {item.name}
                                             </Text>
-                                            <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                                            <Text
+                                                style={{
+                                                    color: "rgba(255, 255, 255, 0.4)",
+                                                    fontSize: 13,
+                                                    marginTop: 2,
+                                                }}
+                                            >
                                                 {item.songs.length} songs
                                             </Text>
                                         </View>

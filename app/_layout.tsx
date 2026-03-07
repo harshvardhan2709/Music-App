@@ -17,8 +17,8 @@ import "../global.css";
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
   const insets = useSafeAreaInsets();
-  const iconColor = "#ffffff";
-  const inactiveColor = "#999999";
+  const iconColor = "#c084fc";
+  const inactiveColor = "#555555";
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -26,7 +26,7 @@ export default function TabsLayout() {
         <LikesProvider>
           <PlaylistsProvider>
             <AudioPlayerProvider>
-              <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+              <StatusBar style="light" />
 
               <Tabs
                 screenOptions={{
@@ -50,23 +50,34 @@ export default function TabsLayout() {
                         right: 10,
                       }}
                     >
-                      <View className="h-[54px] bg-primary rounded-3xl py-3 shadow-lg elevation-[12] shadow-black/15" />
+                      <View
+                        style={{
+                          height: 58,
+                          borderRadius: 28,
+                          paddingVertical: 12,
+                          backgroundColor: "rgba(25, 4, 25, 0.85)",
+                          borderWidth: 1,
+                          borderColor: "rgba(127, 25, 230, 0.25)",
+
+                        }}
+                      />
                     </Animated.View>
                   ),
 
                   tabBarLabelStyle: {
                     fontSize: 10,
-                    fontWeight: "600",
+                    fontWeight: "700",
+                    letterSpacing: 0.5,
                   },
                 }}
               >
                 <Tabs.Screen
                   name="index"
                   options={{
-                    title: "Queue",
+                    title: "Home",
                     headerShown: false,
                     tabBarIcon: ({ color }) => (
-                      <FontAwesome name="list-ul" size={20} color={color} />
+                      <FontAwesome name="home" size={20} color={color} />
                     ),
                   }}
                 />
@@ -103,6 +114,14 @@ export default function TabsLayout() {
 
                 <Tabs.Screen
                   name="share"
+                  options={{
+                    href: null,
+                    headerShown: false,
+                  }}
+                />
+
+                <Tabs.Screen
+                  name="queue"
                   options={{
                     href: null,
                     headerShown: false,

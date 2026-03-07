@@ -27,20 +27,46 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-black p-5 pt-12">
-      <View className="bg-primary p-4 rounded-3xl mb-4 ">
-        <Text className="text-xl font-bold text-center text-white">
-          My Library
-        </Text>
+    <View className="flex-1 bg-surface pt-12">
+      {/* Header */}
+      <View className="px-5 mb-4">
+        <View
+          style={{
+            backgroundColor: "rgba(25, 4, 25, 0.85)",
+            borderWidth: 1,
+            borderColor: "rgba(127, 25, 230, 0.25)",
+            borderRadius: 24,
+            padding: 16,
+          }}
+        >
+          <Text className="text-xl font-bold text-center text-neon-purple">
+            My Library
+          </Text>
+        </View>
       </View>
 
-      <View className="flex-row justify-between items-center mb-6">
+      {/* New Playlist Button */}
+      <View className="px-5 mb-4">
         <TouchableOpacity
           onPress={() => setIsModalVisible(true)}
-          className="bg-primary px-8 py-3 rounded-full flex-1 flex-row items-center justify-center gap-2"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            paddingVertical: 14,
+            borderRadius: 24,
+            backgroundColor: "rgba(127, 25, 230, 0.2)",
+            borderWidth: 1,
+            borderColor: "rgba(127, 25, 230, 0.4)",
+          }}
         >
-          <FontAwesome name="plus" size={16} color="white" />
-          <Text className="text-white font-semibold">New Playlist</Text>
+          <FontAwesome name="plus" size={16} color="#c084fc" />
+          <Text
+            style={{ color: "#c084fc", fontWeight: "600", fontSize: 15 }}
+          >
+            New Playlist
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -48,54 +74,143 @@ export default function LibraryScreen() {
         data={playlists}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        columnWrapperStyle={{ justifyContent: "space-between", gap: 10 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          gap: 10,
+          paddingHorizontal: 20,
+        }}
+        contentContainerStyle={{ paddingBottom: 180 }}
         ListHeaderComponent={
-          <TouchableOpacity
-            className="w-full bg-red-50 dark:bg-red-900/20 rounded-2xl p-4 mb-4 flex-row items-center gap-4"
-            onPress={() => router.push("/favorites")}
-          >
-            <View className="bg-red-100 dark:bg-red-800/30 w-12 h-12 rounded-full justify-center items-center">
-              <FontAwesome name="heart" size={24} color="#ff4444" />
-            </View>
-            <View>
-              <Text className="font-bold text-lg text-black dark:text-white">
-                Favorites
-              </Text>
-              <Text className="text-gray-500 dark:text-gray-400">
-                Your liked songs
-              </Text>
-            </View>
-          </TouchableOpacity>
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 16,
+                padding: 16,
+                borderRadius: 20,
+                backgroundColor: "rgba(239, 68, 68, 0.08)",
+                borderWidth: 1,
+                borderColor: "rgba(239, 68, 68, 0.2)",
+              }}
+              onPress={() => router.push("/favorites")}
+            >
+              <View
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 26,
+                  backgroundColor: "rgba(239, 68, 68, 0.15)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <FontAwesome name="heart" size={24} color="#ff4444" />
+              </View>
+              <View>
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    fontSize: 18,
+                    color: "#ffffff",
+                  }}
+                >
+                  Favorites
+                </Text>
+                <Text style={{ color: "rgba(255, 255, 255, 0.4)", fontSize: 13 }}>
+                  Your liked songs
+                </Text>
+              </View>
+              <View style={{ flex: 1, alignItems: "flex-end" }}>
+                <FontAwesome
+                  name="chevron-right"
+                  size={14}
+                  color="rgba(255, 255, 255, 0.3)"
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
         }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center mt-20">
-            <Text className="text-gray-400 text-lg">No playlists yet</Text>
-            <Text className="text-gray-400 text-sm mt-2">
+            <FontAwesome
+              name="folder-open"
+              size={40}
+              color="rgba(127, 25, 230, 0.3)"
+            />
+            <Text
+              style={{
+                color: "rgba(255, 255, 255, 0.4)",
+                fontSize: 16,
+                marginTop: 12,
+              }}
+            >
+              No playlists yet
+            </Text>
+            <Text
+              style={{
+                color: "rgba(255, 255, 255, 0.25)",
+                fontSize: 13,
+                marginTop: 4,
+              }}
+            >
               Create one to start your collection
             </Text>
           </View>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="w-[48%] bg-primary rounded-2xl p-4 aspect-square justify-between mb-4"
+            style={{
+              width: "48%",
+              aspectRatio: 1,
+              borderRadius: 20,
+              padding: 16,
+              justifyContent: "space-between",
+              marginBottom: 12,
+              backgroundColor: "rgba(25, 4, 25, 0.85)",
+              borderWidth: 1,
+              borderColor: "rgba(127, 25, 230, 0.25)",
+            }}
             onPress={() => router.push(`/library/${item.id}` as any)}
           >
-            <View className="bg-white/20 w-12 h-12 rounded-full justify-center items-center">
-              <FontAwesome name="music" size={24} color="#ffffff" />
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                backgroundColor: "rgba(127, 25, 230, 0.2)",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <FontAwesome name="music" size={22} color="#c084fc" />
             </View>
             <View>
-              <Text className="font-bold text-lg text-white" numberOfLines={1}>
+              <Text
+                style={{
+                  fontWeight: "700",
+                  fontSize: 16,
+                  color: "#ffffff",
+                }}
+                numberOfLines={1}
+              >
                 {item.name}
               </Text>
-              <Text className="text-gray-500 dark:text-gray-400">
-                songs: {item.songs.length}
+              <Text
+                style={{
+                  color: "rgba(255, 255, 255, 0.4)",
+                  fontSize: 12,
+                  marginTop: 2,
+                }}
+              >
+                {item.songs.length} songs
               </Text>
             </View>
           </TouchableOpacity>
         )}
       />
 
+      {/* Create Playlist Modal */}
       <Modal
         visible={isModalVisible}
         transparent
@@ -104,28 +219,77 @@ export default function LibraryScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "android" ? "padding" : "height"}
-          className="flex-1 bg-black/50 justify-center items-center px-10"
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 40,
+          }}
         >
-          <View className="bg-white dark:bg-gray-900 w-full rounded-2xl p-6">
-            <Text className="text-xl font-bold mb-4 text-black dark:text-white">
-              Playlist Name{" "}
+          <View
+            style={{
+              width: "100%",
+              borderRadius: 24,
+              padding: 24,
+              backgroundColor: "#141414",
+              borderWidth: 1,
+              borderColor: "rgba(127, 25, 230, 0.3)",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "700",
+                marginBottom: 20,
+                color: "#ffffff",
+              }}
+            >
+              New Playlist
             </Text>
             <TextInput
               placeholder="Playlist Name"
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(255, 255, 255, 0.3)"
               value={newPlaylistName}
               onChangeText={setNewPlaylistName}
               autoFocus
-              className="border-b border-gray-300 dark:border-gray-700 p-2 text-lg mb-2 text-black dark:text-white"
+              style={{
+                borderBottomWidth: 1,
+                borderBottomColor: "rgba(127, 25, 230, 0.4)",
+                padding: 8,
+                fontSize: 16,
+                marginBottom: 20,
+                color: "#ffffff",
+              }}
             />
-            <View className="flex-row justify-end gap-4">
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 20,
+              }}
+            >
               <TouchableOpacity onPress={() => setIsModalVisible(false)}>
-                <Text className="text-gray-500 dark:text-gray-400 font-semibold text-lg">
+                <Text
+                  style={{
+                    color: "rgba(255, 255, 255, 0.5)",
+                    fontWeight: "600",
+                    fontSize: 16,
+                  }}
+                >
                   Cancel
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleCreate}>
-                <Text className="text-primary font-bold text-lg">Create</Text>
+                <Text
+                  style={{
+                    color: "#c084fc",
+                    fontWeight: "700",
+                    fontSize: 16,
+                  }}
+                >
+                  Create
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
