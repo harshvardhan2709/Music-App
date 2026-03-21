@@ -1,3 +1,5 @@
+// FileTransferProgress.tsx
+
 import React from "react";
 import { Text, View } from "react-native";
 import { formatBytes } from "../utils/fileUtils";
