@@ -10,6 +10,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
+import { getSongMetadata } from "../utils/metadataUtils";
 
 interface Song {
     id: string;
@@ -23,6 +25,90 @@ interface SongSelectorProps {
     onClose: () => void;
     onSelect: (song: Song) => void;
 }
+
+const SongSelectorItem = ({ item, onSelect }: { item: Song, onSelect: (song: Song) => void }) => {
+    const [artwork, setArtwork] = useState<string | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        getSongMetadata(item.uri, item.id).then((meta) => {
+            if (isMounted && meta?.artwork) {
+                setArtwork(meta.artwork);
+            }
+        });
+        return () => { isMounted = false; };
+    }, [item.id, item.uri]);
+
+    const formatDuration = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    return (
+        <TouchableOpacity
+            onPress={() => onSelect(item)}
+            style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                borderBottomWidth: 1,
+                borderBottomColor: "rgba(255, 255, 255, 0.03)",
+            }}
+        >
+            <View
+                style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(127, 25, 230, 0.1)",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginRight: 12,
+                    overflow: "hidden",
+                }}
+            >
+                {artwork ? (
+                    <ExpoImage
+                        source={{ uri: artwork }}
+                        style={{ width: "100%", height: "100%" }}
+                        contentFit="cover"
+                        transition={200}
+                    />
+                ) : (
+                    <FontAwesome name="music" size={18} color="#7f19e6" />
+                )}
+            </View>
+            <View style={{ flex: 1 }}>
+                <Text
+                    style={{
+                        fontSize: 15,
+                        fontWeight: "600",
+                        color: "#ffffff",
+                    }}
+                    numberOfLines={1}
+                >
+                    {item.filename.replace(/\.[^/.]+$/, "")}
+                </Text>
+                <Text
+                    style={{
+                        fontSize: 12,
+                        color: "rgba(255, 255, 255, 0.4)",
+                        marginTop: 2,
+                    }}
+                >
+                    {formatDuration(item.duration)}
+                </Text>
+            </View>
+            <FontAwesome
+                name="chevron-right"
+                size={12}
+                color="rgba(255, 255, 255, 0.2)"
+            />
+        </TouchableOpacity>
+    );
+};
 
 export default function SongSelector({
     visible,
@@ -83,12 +169,6 @@ export default function SongSelector({
         } finally {
             setLoading(false);
         }
-    };
-
-    const formatDuration = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
     const handleSelect = (song: Song) => {
@@ -226,57 +306,10 @@ export default function SongSelector({
                             keyExtractor={(item) => item.id}
                             contentContainerStyle={{ paddingBottom: 40 }}
                             renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    onPress={() => handleSelect(item)}
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        paddingVertical: 12,
-                                        paddingHorizontal: 20,
-                                        borderBottomWidth: 1,
-                                        borderBottomColor: "rgba(255, 255, 255, 0.03)",
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            width: 44,
-                                            height: 44,
-                                            borderRadius: 10,
-                                            backgroundColor: "rgba(127, 25, 230, 0.1)",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            marginRight: 12,
-                                        }}
-                                    >
-                                        <FontAwesome name="music" size={18} color="#7f19e6" />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text
-                                            style={{
-                                                fontSize: 15,
-                                                fontWeight: "600",
-                                                color: "#ffffff",
-                                            }}
-                                            numberOfLines={1}
-                                        >
-                                            {item.filename.replace(/\.[^/.]+$/, "")}
-                                        </Text>
-                                        <Text
-                                            style={{
-                                                fontSize: 12,
-                                                color: "rgba(255, 255, 255, 0.4)",
-                                                marginTop: 2,
-                                            }}
-                                        >
-                                            {formatDuration(item.duration)}
-                                        </Text>
-                                    </View>
-                                    <FontAwesome
-                                        name="chevron-right"
-                                        size={12}
-                                        color="rgba(255, 255, 255, 0.2)"
-                                    />
-                                </TouchableOpacity>
+                                <SongSelectorItem
+                                    item={item}
+                                    onSelect={handleSelect}
+                                />
                             )}
                         />
                     )}

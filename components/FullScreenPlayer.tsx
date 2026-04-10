@@ -1,3 +1,4 @@
+import { Image as ExpoImage } from "expo-image";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Slider from "@react-native-community/slider";
 import { useAudioPlayerStatus } from "expo-audio";
@@ -119,7 +120,16 @@ const FullScreenPlayer = React.memo(
                                     alignItems: "center",
                                 }}
                             >
-                                <FontAwesome name="music" size={80} color="rgba(127, 25, 230, 0.35)" />
+                                {currentSong.artwork ? (
+                                    <ExpoImage
+                                        source={{ uri: currentSong.artwork }}
+                                        style={{ width: "100%", height: "100%" }}
+                                        contentFit="cover"
+                                        transition={300}
+                                    />
+                                ) : (
+                                    <FontAwesome name="music" size={80} color="rgba(127, 25, 230, 0.35)" />
+                                )}
                             </View>
                         </View>
                     </View>

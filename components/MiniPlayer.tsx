@@ -1,3 +1,4 @@
+import { Image as ExpoImage } from "expo-image";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -39,7 +40,7 @@ export default function MiniPlayer() {
                             borderColor: "rgba(127, 25, 230, 0.3)",
                         }}
                     >
-                        {/* Artwork Placeholder */}
+                        {/* Artwork */}
                         <View
                             style={{
                                 width: 42,
@@ -48,9 +49,19 @@ export default function MiniPlayer() {
                                 backgroundColor: "rgba(127, 25, 230, 0.2)",
                                 justifyContent: "center",
                                 alignItems: "center",
+                                overflow: "hidden",
                             }}
                         >
-                            <FontAwesome name="music" size={18} color="#c084fc" />
+                            {currentSong.artwork ? (
+                                <ExpoImage
+                                    source={{ uri: currentSong.artwork }}
+                                    style={{ width: "100%", height: "100%" }}
+                                    contentFit="cover"
+                                    transition={200}
+                                />
+                            ) : (
+                                <FontAwesome name="music" size={18} color="#c084fc" />
+                            )}
                         </View>
 
                         {/* Song Info */}

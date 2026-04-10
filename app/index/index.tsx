@@ -18,12 +18,106 @@ import Animated, {
   FadeOutDown,
   Layout,
 } from "react-native-reanimated";
+import { Image as ExpoImage } from "expo-image";
 import AddToPlaylistModal from "../../components/AddToPlaylistModal";
 import LikeButton from "../../components/LikeButton";
 import { useAudioPlayer } from "../../context/AudioPlayerContext";
+import { getSongMetadata } from "../../utils/metadataUtils";
 
 type SongWithDuration = MediaLibrary.Asset & {
   realDuration?: number;
+};
+
+const SongListItem = ({ item, isCurrent }: { item: SongWithDuration, isCurrent: boolean }) => {
+  const [artwork, setArtwork] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+        const meta = await getSongMetadata(item.uri, item.id);
+        if (isMounted && meta?.artwork) {
+          setArtwork(meta.artwork);
+        }
+    })();
+    return () => { isMounted = false; };
+  }, [item.id, item.uri]);
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        marginBottom: 6,
+        borderRadius: 16,
+        backgroundColor: isCurrent
+          ? "rgba(127, 25, 230, 0.15)"
+          : "rgba(255, 255, 255, 0.03)",
+        borderWidth: isCurrent ? 1 : 0,
+        borderColor: isCurrent
+          ? "rgba(127, 25, 230, 0.4)"
+          : "transparent",
+      }}
+    >
+      {/* Album Art */}
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 10,
+          justifyContent: "center",
+          alignItems: "center",
+          marginRight: 12,
+          backgroundColor: isCurrent
+            ? "rgba(127, 25, 230, 0.3)"
+            : "rgba(127, 25, 230, 0.1)",
+          overflow: "hidden",
+        }}
+      >
+        {artwork ? (
+          <ExpoImage
+            source={{ uri: artwork }}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            transition={200}
+          />
+        ) : (
+          <FontAwesome
+            name={isCurrent ? "volume-up" : "music"}
+            size={isCurrent ? 16 : 18}
+            color={isCurrent ? "#c084fc" : "#7f19e6"}
+          />
+        )}
+      </View>
+
+      {/* Song Info */}
+      <View style={{ flex: 1 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: 15,
+            fontWeight: isCurrent ? "700" : "500",
+            color: isCurrent ? "#c084fc" : "#ffffff",
+          }}
+        >
+          {item.filename}
+        </Text>
+        <Text
+          style={{
+            fontSize: 12,
+            color: "rgba(255, 255, 255, 0.4)",
+            marginTop: 2,
+          }}
+        >
+           {item.duration ? `${Math.floor(item.duration / 60)}:${String(Math.floor(item.duration % 60)).padStart(2, '0')}` : "0:00"}
+        </Text>
+      </View>
+
+      {/* Like Button */}
+      <LikeButton song={item} />
+    </View>
+  );
 };
 
 export default function MusicPlayerScreen() {
@@ -73,14 +167,6 @@ export default function MusicPlayerScreen() {
 
     setSongs(result);
     setLoading(false);
-  };
-
-  const formatDuration = (millis?: number) => {
-    if (!millis) return "0:00";
-    const totalSeconds = Math.floor(millis / 1000);
-    return `${Math.floor(totalSeconds / 60)}:${String(
-      totalSeconds % 60,
-    ).padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -201,70 +287,10 @@ export default function MusicPlayerScreen() {
             delayLongPress={500}
             activeOpacity={0.7}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 12,
-                paddingHorizontal: 14,
-                marginBottom: 6,
-                borderRadius: 16,
-                backgroundColor: isCurrentSong(item)
-                  ? "rgba(127, 25, 230, 0.15)"
-                  : "rgba(255, 255, 255, 0.03)",
-                borderWidth: isCurrentSong(item) ? 1 : 0,
-                borderColor: isCurrentSong(item)
-                  ? "rgba(127, 25, 230, 0.4)"
-                  : "transparent",
-              }}
-            >
-              {/* Album Art Placeholder */}
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginRight: 12,
-                  backgroundColor: isCurrentSong(item)
-                    ? "rgba(127, 25, 230, 0.3)"
-                    : "rgba(127, 25, 230, 0.1)",
-                }}
-              >
-                <FontAwesome
-                  name={isCurrentSong(item) ? "volume-up" : "music"}
-                  size={isCurrentSong(item) ? 16 : 18}
-                  color={isCurrentSong(item) ? "#c084fc" : "#7f19e6"}
-                />
-              </View>
-
-              {/* Song Info */}
-              <View style={{ flex: 1 }}>
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 15,
-                    fontWeight: isCurrentSong(item) ? "700" : "500",
-                    color: isCurrentSong(item) ? "#c084fc" : "#ffffff",
-                  }}
-                >
-                  {item.filename}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: "rgba(255, 255, 255, 0.4)",
-                    marginTop: 2,
-                  }}
-                >
-                  {formatDuration(item.realDuration)}
-                </Text>
-              </View>
-
-              {/* Like Button */}
-              <LikeButton song={item} />
-            </View>
+            <SongListItem
+              item={item}
+              isCurrent={isCurrentSong(item)}
+            />
           </TouchableOpacity>
         )}
       />

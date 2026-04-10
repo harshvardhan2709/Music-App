@@ -75,11 +75,29 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
             try {
                 player.replace({ uri: currentSong.uri.split('?')[0] });
 
-                player.setActiveForLockScreen(true, {
-                    title: currentSong.title || 'Unknown Title',
-                    artist: currentSong.artist || 'Unknown Artist',
-                    albumTitle: currentSong.album || 'Unknown Album',
-                    artworkUrl: typeof currentSong.artwork === 'string' ? currentSong.artwork : undefined,
+                // Try to get metadata for artwork and better info
+                import('../utils/metadataUtils').then(async ({ getSongMetadata }) => {
+                    const metadata = await getSongMetadata(currentSong.uri, currentSong.id);
+                    if (metadata) {
+                        player.setActiveForLockScreen(true, {
+                            title: metadata.title || currentSong.title || currentSong.filename || 'Unknown Title',
+                            artist: metadata.artist || currentSong.artist || 'Unknown Artist',
+                            albumTitle: metadata.album || currentSong.album || 'Unknown Album',
+                            artworkUrl: metadata.artwork,
+                        });
+                        
+                        // Update current song state with metadata if not already there
+                        if (!currentSong.artwork && metadata.artwork) {
+                             setCurrentSong((prev: any) => prev?.id === currentSong.id ? { ...prev, ...metadata } : prev);
+                        }
+                    } else {
+                        player.setActiveForLockScreen(true, {
+                            title: currentSong.title || currentSong.filename || 'Unknown Title',
+                            artist: currentSong.artist || 'Unknown Artist',
+                            albumTitle: currentSong.album || 'Unknown Album',
+                            artworkUrl: typeof currentSong.artwork === 'string' ? currentSong.artwork : undefined,
+                        });
+                    }
                 });
 
                 player.play();
