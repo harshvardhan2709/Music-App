@@ -12,6 +12,8 @@
   <img src="assets/demo7.jpeg" alt="Other Models" width="250" />
 </p>
 
+NOTE: THIS APP IS NOT FULLY OPTIMIZED SO IT MAY SHOW DELAYS IN DEVICES.
+
 Msick is a React Native music application built with Expo that enhances local file management with advanced AI capabilities. It focuses on beautifully playing and intelligently organizing your local music library via custom AI-driven categorization, metadata extraction, and robust caching.
 
 ## Features
@@ -34,7 +36,7 @@ Msick is a React Native music application built with Expo that enhances local fi
 
 ### Prerequisites
 
-Ensure you have [Node.js](https://nodejs.org/) installed along with `npm` or `yarn`. Because this project uses custom native modules, it runs as an **Expo Development Build** instead of the standard Expo Go app. 
+Ensure you have [Node.js](https://nodejs.org/) installed along with `npm` or `yarn`. Because this project uses custom native modules, it runs as an **Expo Development Build** instead of the standard Expo Go app.
 You will need a configured Android Emulator (via Android Studio) or a physical Android device connected via USB with USB debugging enabled.
 
 ### Installation
@@ -63,7 +65,7 @@ Since this project requires custom native code, you must build the native app an
 npx expo run:android
 ```
 
-*(This command compiles the custom native code for the music modules and installs the Development Build directly onto your Android emulator or connected device).*
+_(This command compiles the custom native code for the music modules and installs the Development Build directly onto your Android emulator or connected device)._
 
 Once the native app is built and installed on your device, for future sessions you can simply start the Metro bundler:
 
