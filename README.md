@@ -12,7 +12,7 @@
   <img src="assets/demo7.jpeg" alt="Other Models" width="250" />
 </p>
 
-NOTE: THIS APP IS NOT FULLY OPTIMIZED SO IT MAY SHOW DELAYS IN DEVICES.
+NOTE: THIS APP IS NOT FULLY OPTIMIZED SO IT MAY SHOW DELAYS/LAGS.
 
 Msick is a React Native music application built with Expo that enhances local file management with advanced AI capabilities. It focuses on beautifully playing and intelligently organizing your local music library via custom AI-driven categorization, metadata extraction, and robust caching.
 
