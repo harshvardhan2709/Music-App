@@ -4,7 +4,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as MediaLibrary from "expo-media-library";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -28,7 +28,9 @@ type SongWithDuration = MediaLibrary.Asset & {
   realDuration?: number;
 };
 
-const SongListItem = ({ item, isCurrent }: { item: SongWithDuration, isCurrent: boolean }) => {
+const ITEM_HEIGHT = 68; // 44px content + 12*2 padding + 6 marginBottom ≈ 68
+
+const SongListItem = React.memo(({ item, isCurrent }: { item: SongWithDuration, isCurrent: boolean }) => {
   const [artwork, setArtwork] = useState<string | null>(null);
 
   useEffect(() => {
@@ -115,10 +117,10 @@ const SongListItem = ({ item, isCurrent }: { item: SongWithDuration, isCurrent: 
       </View>
 
       {/* Like Button */}
-      <LikeButton song={item} />
+      <LikeButton songId={item.id} song={item} />
     </View>
   );
-};
+});
 
 export default function MusicPlayerScreen() {
   const { colorScheme } = useColorScheme();
@@ -133,10 +135,12 @@ export default function MusicPlayerScreen() {
   const [addToPlaylistVisible, setAddToPlaylistVisible] = useState(false);
   const [songToAdd, setSongToAdd] = useState<SongWithDuration | null>(null);
 
-  const handleLongPress = (song: SongWithDuration) => {
+  const currentSongId = currentSong?.id;
+
+  const handleLongPress = useCallback((song: SongWithDuration) => {
     setSongToAdd(song);
     setAddToPlaylistVisible(true);
-  };
+  }, []);
 
   useEffect(() => {
     loadSongs();
@@ -169,6 +173,44 @@ export default function MusicPlayerScreen() {
     setLoading(false);
   };
 
+  // Memoize filtered + sorted list to avoid recomputation on every render
+  const sorted = useMemo(() => {
+    const filtered = songs.filter((song) =>
+      song.filename.toLowerCase().includes(search.toLowerCase()),
+    );
+    return [...filtered].sort((a, b) =>
+      sortType === "name"
+        ? a.filename.localeCompare(b.filename)
+        : (b.realDuration ?? 0) - (a.realDuration ?? 0),
+    );
+  }, [songs, search, sortType]);
+
+  const handlePlay = useCallback((item: SongWithDuration) => {
+    play(item, sorted);
+  }, [play, sorted]);
+
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: ITEM_HEIGHT,
+    offset: ITEM_HEIGHT * index,
+    index,
+  }), []);
+
+  const renderItem = useCallback(({ item }: { item: SongWithDuration }) => (
+    <TouchableOpacity
+      onPress={() => handlePlay(item)}
+      onLongPress={() => handleLongPress(item)}
+      delayLongPress={500}
+      activeOpacity={0.7}
+    >
+      <SongListItem
+        item={item}
+        isCurrent={item.id === currentSongId}
+      />
+    </TouchableOpacity>
+  ), [handlePlay, handleLongPress, currentSongId]);
+
+  const keyExtractor = useCallback((item: SongWithDuration) => item.id, []);
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-surface">
@@ -197,19 +239,6 @@ export default function MusicPlayerScreen() {
       </View>
     );
   }
-
-  const filtered = songs.filter((song) =>
-    song.filename.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const sorted = [...filtered].sort((a, b) =>
-    sortType === "name"
-      ? a.filename.localeCompare(b.filename)
-      : (b.realDuration ?? 0) - (a.realDuration ?? 0),
-  );
-
-  const isCurrentSong = (item: SongWithDuration) =>
-    currentSong?.id === item.id;
 
   return (
     <View className="flex-1 bg-surface pt-12">
@@ -278,21 +307,15 @@ export default function MusicPlayerScreen() {
       {/* Song List */}
       <FlatList
         data={sorted}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => play(item, sorted)}
-            onLongPress={() => handleLongPress(item)}
-            delayLongPress={500}
-            activeOpacity={0.7}
-          >
-            <SongListItem
-              item={item}
-              isCurrent={isCurrentSong(item)}
-            />
-          </TouchableOpacity>
-        )}
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
 
       {/* Sort Modal */}

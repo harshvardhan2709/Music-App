@@ -7,11 +7,11 @@ import {
     classifyAllSongs,
     loadGenreMap,
 } from '../utils/genreService';
-import { type Playlist, type Song, usePlaylists } from './PlaylistsContext';
+
 
 type GenreMap = Record<string, GenreType>;
 
-type ClassificationStatus = 'idle' | 'loading_songs' | 'classifying' | 'creating_playlists' | 'done' | 'error';
+type ClassificationStatus = 'idle' | 'loading_songs' | 'classifying' | 'done' | 'error';
 
 type GenreContextType = {
     genreMap: GenreMap;
@@ -50,7 +50,7 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
     const [progressMessage, setProgressMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [hasClassified, setHasClassified] = useState(false);
-    const { playlists, createPlaylist, addSongToPlaylist } = usePlaylists();
+
 
     // Load existing genre map on mount
     useEffect(() => {
@@ -148,79 +148,17 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
 
             // Classify with progress
             const result = await classifyAllSongs(songs, (completed, total, batchDesc) => {
-                const classifyProgress = 10 + (completed / total) * 60; // 10% to 70%
+                const classifyProgress = 10 + (completed / total) * 85; // 10% to 95%
                 setProgress(Math.round(classifyProgress));
                 setProgressMessage(`Analyzing: ${completed}/${total} songs classified\n${batchDesc}`);
             });
 
             setGenreMap(result);
-            setProgress(75);
-            setProgressMessage('Classification complete! Creating playlists...');
-            setStatus('creating_playlists');
 
-            // Auto-create playlists for each genre that has songs
-            const genreSongMap: Record<string, typeof songs> = {};
-            for (const [songId, genre] of Object.entries(result)) {
-                if (!genreSongMap[genre]) genreSongMap[genre] = [];
-                const songData = media.assets.find(a => a.id === songId);
-                if (songData) {
-                    genreSongMap[genre].push({ id: songData.id, filename: songData.filename });
-                }
-            }
-
-            let playlistsCreated = 0;
-            const genresWithSongs = Object.entries(genreSongMap).filter(([_, s]) => s.length > 0);
-
-            for (const [genre, genreSongs] of genresWithSongs) {
-                const playlistName = `🎵 ${genre}`;
-                // Check if playlist already exists
-                const existing = playlists.find(p => p.name === playlistName);
-                if (!existing) {
-                    await createPlaylist(playlistName);
-                    playlistsCreated++;
-
-                    // Small delay to ensure playlist is created before adding songs
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                }
-
-                const playlistProgress = 75 + (playlistsCreated / genresWithSongs.length) * 20;
-                setProgress(Math.round(playlistProgress));
-                setProgressMessage(`Creating playlist: ${playlistName} (${genreSongs.length} songs)`);
-            }
-
-            // Now add songs to playlists — we need to reload playlists from storage
-            // since createPlaylist updates state asynchronously
-            const storedPlaylistsRaw = await AsyncStorage.getItem('Msick-playlists');
-            const storedPlaylists: Playlist[] = storedPlaylistsRaw ? JSON.parse(storedPlaylistsRaw) : [];
-
-            for (const [genre, genreSongs] of genresWithSongs) {
-                const playlistName = `🎵 ${genre}`;
-                const playlist = storedPlaylists.find(p => p.name === playlistName);
-                if (playlist) {
-                    for (const song of genreSongs) {
-                        const fullSongData = media.assets.find(a => a.id === song.id);
-                        if (fullSongData) {
-                            const songObj: Song = {
-                                id: fullSongData.id,
-                                filename: fullSongData.filename,
-                                uri: fullSongData.uri,
-                                duration: fullSongData.duration,
-                            };
-                            // Add to playlist if not already there
-                            const alreadyExists = playlist.songs.some(s => s.id === songObj.id);
-                            if (!alreadyExists) {
-                                playlist.songs.push(songObj);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Save updated playlists with songs
-            await AsyncStorage.setItem('Msick-playlists', JSON.stringify(storedPlaylists));
+            const activeGenreCount = new Set(Object.values(result)).size;
 
             setProgress(100);
-            setProgressMessage(`Done! Classified ${songs.length} songs into ${genresWithSongs.length} genres.`);
+            setProgressMessage(`Done! Classified ${songs.length} songs into ${activeGenreCount} genres.`);
             setStatus('done');
             setHasClassified(true);
             await AsyncStorage.setItem(CLASSIFIED_FLAG_KEY, 'true');
@@ -230,7 +168,7 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
             setErrorMessage(`Classification failed: ${error}`);
             setStatus('error');
         }
-    }, [playlists, createPlaylist, addSongToPlaylist]);
+    }, []);
 
     return (
         <GenreContext.Provider

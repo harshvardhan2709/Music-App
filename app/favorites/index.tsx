@@ -1,17 +1,126 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import LikeButton from "../../components/LikeButton";
 import { useAudioPlayer } from "../../context/AudioPlayerContext";
 import { useLikes } from "../../hooks/useLikes";
+
+const ITEM_HEIGHT = 68;
+
+const FavoriteSongItem = React.memo(({ item, isCurrent }: { item: any, isCurrent: boolean }) => (
+    <View
+        style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            marginBottom: 6,
+            borderRadius: 16,
+            backgroundColor: isCurrent
+                ? "rgba(127, 25, 230, 0.15)"
+                : "rgba(255, 255, 255, 0.03)",
+            borderWidth: isCurrent ? 1 : 0,
+            borderColor: isCurrent
+                ? "rgba(127, 25, 230, 0.4)"
+                : "transparent",
+        }}
+    >
+        {/* Album Art Placeholder */}
+        <View
+            style={{
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                justifyContent: "center",
+                alignItems: "center",
+                marginRight: 12,
+                backgroundColor: isCurrent
+                    ? "rgba(127, 25, 230, 0.3)"
+                    : "rgba(239, 68, 68, 0.1)",
+            }}
+        >
+            <FontAwesome
+                name={isCurrent ? "volume-up" : "heart"}
+                size={isCurrent ? 16 : 18}
+                color={isCurrent ? "#c084fc" : "#ff4444"}
+            />
+        </View>
+
+        <View style={{ flex: 1 }}>
+            <Text
+                numberOfLines={1}
+                style={{
+                    fontSize: 15,
+                    fontWeight: isCurrent ? "700" : "500",
+                    color: isCurrent ? "#c084fc" : "#ffffff",
+                }}
+            >
+                {item.filename}
+            </Text>
+        </View>
+
+        <LikeButton songId={item.id} song={item} />
+    </View>
+));
+
+const EmptyFavorites = React.memo(() => (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 80 }}>
+        <FontAwesome
+            name="heart-o"
+            size={40}
+            color="rgba(239, 68, 68, 0.3)"
+        />
+        <Text
+            style={{
+                color: "rgba(255, 255, 255, 0.4)",
+                fontSize: 16,
+                marginTop: 12,
+            }}
+        >
+            No liked songs yet
+        </Text>
+        <Text
+            style={{
+                color: "rgba(255, 255, 255, 0.25)",
+                fontSize: 13,
+                marginTop: 4,
+            }}
+        >
+            Tap the heart icon on any song
+        </Text>
+    </View>
+));
 
 export default function FavoritesScreen() {
     const { likesMap } = useLikes();
     const { play, currentSong } = useAudioPlayer();
 
     const liked = useMemo(() => Object.values(likesMap), [likesMap]);
+    const currentSongId = currentSong?.id;
 
-    const isCurrentSong = (item: any) => currentSong?.id === item.id;
+    const handlePlay = useCallback((item: any) => {
+        play(item, liked);
+    }, [play, liked]);
+
+    const getItemLayout = useCallback((_: any, index: number) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index,
+    }), []);
+
+    const keyExtractor = useCallback((item: any) => item.id, []);
+
+    const renderItem = useCallback(({ item }: { item: any }) => (
+        <TouchableOpacity
+            onPress={() => handlePlay(item)}
+            activeOpacity={0.7}
+        >
+            <FavoriteSongItem
+                item={item}
+                isCurrent={item.id === currentSongId}
+            />
+        </TouchableOpacity>
+    ), [handlePlay, currentSongId]);
 
     return (
         <View className="flex-1 bg-surface pt-12">
@@ -51,95 +160,16 @@ export default function FavoritesScreen() {
 
             <FlatList
                 data={liked}
-                keyExtractor={(item) => item.id}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                getItemLayout={getItemLayout}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
-                ListEmptyComponent={
-                    <View className="flex-1 justify-center items-center mt-20">
-                        <FontAwesome
-                            name="heart-o"
-                            size={40}
-                            color="rgba(239, 68, 68, 0.3)"
-                        />
-                        <Text
-                            style={{
-                                color: "rgba(255, 255, 255, 0.4)",
-                                fontSize: 16,
-                                marginTop: 12,
-                            }}
-                        >
-                            No liked songs yet
-                        </Text>
-                        <Text
-                            style={{
-                                color: "rgba(255, 255, 255, 0.25)",
-                                fontSize: 13,
-                                marginTop: 4,
-                            }}
-                        >
-                            Tap the heart icon on any song
-                        </Text>
-                    </View>
-                }
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        onPress={() => play(item, liked)}
-                        activeOpacity={0.7}
-                    >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                paddingVertical: 12,
-                                paddingHorizontal: 14,
-                                marginBottom: 6,
-                                borderRadius: 16,
-                                backgroundColor: isCurrentSong(item)
-                                    ? "rgba(127, 25, 230, 0.15)"
-                                    : "rgba(255, 255, 255, 0.03)",
-                                borderWidth: isCurrentSong(item) ? 1 : 0,
-                                borderColor: isCurrentSong(item)
-                                    ? "rgba(127, 25, 230, 0.4)"
-                                    : "transparent",
-                            }}
-                        >
-                            {/* Album Art Placeholder */}
-                            <View
-                                style={{
-                                    width: 44,
-                                    height: 44,
-                                    borderRadius: 10,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    marginRight: 12,
-                                    backgroundColor: isCurrentSong(item)
-                                        ? "rgba(127, 25, 230, 0.3)"
-                                        : "rgba(239, 68, 68, 0.1)",
-                                }}
-                            >
-                                <FontAwesome
-                                    name={isCurrentSong(item) ? "volume-up" : "heart"}
-                                    size={isCurrentSong(item) ? 16 : 18}
-                                    color={isCurrentSong(item) ? "#c084fc" : "#ff4444"}
-                                />
-                            </View>
-
-                            <View style={{ flex: 1 }}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={{
-                                        fontSize: 15,
-                                        fontWeight: isCurrentSong(item) ? "700" : "500",
-                                        color: isCurrentSong(item) ? "#c084fc" : "#ffffff",
-                                    }}
-                                >
-                                    {item.filename}
-                                </Text>
-                            </View>
-
-                            <LikeButton song={item} />
-                        </View>
-                    </TouchableOpacity>
-                )}
+                initialNumToRender={15}
+                maxToRenderPerBatch={10}
+                updateCellsBatchingPeriod={50}
+                windowSize={5}
+                removeClippedSubviews={true}
+                ListEmptyComponent={EmptyFavorites}
             />
         </View>
     );

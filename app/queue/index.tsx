@@ -155,7 +155,7 @@ export default function QueueScreen() {
                         </TouchableOpacity>
 
                         {/* Like */}
-                        <LikeButton song={item} />
+                        <LikeButton songId={item.id} song={item} />
 
                         {/* Remove */}
                         <TouchableOpacity

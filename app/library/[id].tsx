@@ -143,6 +143,11 @@ export default function PlaylistDetailScreen() {
                 data={playlist.songs}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
+                initialNumToRender={15}
+                maxToRenderPerBatch={10}
+                updateCellsBatchingPeriod={50}
+                windowSize={5}
+                removeClippedSubviews={true}
                 ListEmptyComponent={
                     <View className="flex-1 justify-center items-center mt-20">
                         <FontAwesome

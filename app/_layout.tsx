@@ -138,6 +138,15 @@ export default function TabsLayout() {
                       headerShown: false,
                     }}
                   />
+
+                  <Tabs.Screen
+                    name="smart-filter"
+                    options={{
+                      href: null,
+                      headerShown: false,
+                      tabBarStyle: { display: 'none' },
+                    }}
+                  />
                 </Tabs>
 
                 <MiniPlayer />

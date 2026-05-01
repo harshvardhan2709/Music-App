@@ -109,7 +109,7 @@ export default function FeaturesScreen() {
                 <Animated.View entering={FadeInDown.delay(100).duration(400)}>
                     <TouchableOpacity
                         onPress={handleGenrePress}
-                        disabled={status === 'classifying' || status === 'loading_songs' || status === 'creating_playlists'}
+                        disabled={status === 'classifying' || status === 'loading_songs'}
                         style={{
                             flexDirection: "row",
                             alignItems: "center",
@@ -122,7 +122,7 @@ export default function FeaturesScreen() {
                                 ? "rgba(34, 197, 94, 0.25)"
                                 : "rgba(249, 115, 22, 0.25)",
                             marginBottom: 12,
-                            opacity: (status === 'classifying' || status === 'loading_songs' || status === 'creating_playlists') ? 0.5 : 1,
+                            opacity: (status === 'classifying' || status === 'loading_songs') ? 0.5 : 1,
                         }}
                     >
                         <View
@@ -137,7 +137,7 @@ export default function FeaturesScreen() {
                                 alignItems: "center",
                             }}
                         >
-                            {(status === 'classifying' || status === 'loading_songs' || status === 'creating_playlists') ? (
+                            {(status === 'classifying' || status === 'loading_songs') ? (
                                 <ActivityIndicator size="small" color="#f97316" />
                             ) : (
                                 <FontAwesome
@@ -207,6 +207,57 @@ export default function FeaturesScreen() {
                     </Animated.View>
                 )}
 
+                {/* AI Smart Filter Card */}
+                <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+                    <TouchableOpacity
+                        onPress={() => router.push("/smart-filter" as any)}
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 16,
+                            padding: 20,
+                            borderRadius: 20,
+                            backgroundColor: "rgba(25, 4, 25, 0.85)",
+                            borderWidth: 1,
+                            borderColor: "rgba(14, 165, 233, 0.25)",
+                            marginBottom: 12,
+                        }}
+                    >
+                        <View
+                            style={{
+                                width: 52,
+                                height: 52,
+                                borderRadius: 26,
+                                backgroundColor: "rgba(14, 165, 233, 0.15)",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <FontAwesome name="search" size={22} color="#0ea5e9" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text
+                                style={{ fontWeight: "700", fontSize: 16, color: "#ffffff" }}
+                            >
+                                AI Smart Filter
+                            </Text>
+                            <Text
+                                style={{
+                                    color: "rgba(255, 255, 255, 0.4)",
+                                    fontSize: 13,
+                                    marginTop: 2,
+                                }}
+                            >
+                                Find songs with a custom prompt
+                            </Text>
+                        </View>
+                        <FontAwesome
+                            name="chevron-right"
+                            size={14}
+                            color="rgba(255, 255, 255, 0.3)"
+                        />
+                    </TouchableOpacity>
+                </Animated.View>
                 {/* Coming Soon Section */}
                 <View
                     style={{
@@ -349,7 +400,7 @@ export default function FeaturesScreen() {
                                     <Text style={{ color: "#22c55e", fontSize: 11, fontWeight: "700" }}>3</Text>
                                 </View>
                                 <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, flex: 1 }}>
-                                    Create playlists automatically by genre
+                                    Browse songs organized by genre
                                 </Text>
                             </View>
                         </View>
@@ -365,7 +416,7 @@ export default function FeaturesScreen() {
                                 GENRES DETECTED
                             </Text>
                             <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
-                                {["🔥 Phonk", "😊 Feel Good", "🎉 Party", "🍃 Chill", "💜 Meaningful", "🔔 Ringtone Worthy"].map(g => (
+                                {["🔥 Phonk", "🎉 Party", "🔔 Ringtone Worthy", "🌍 English", "🇮🇳 Indian Music"].map(g => (
                                     <View key={g} style={{
                                         paddingHorizontal: 10,
                                         paddingVertical: 4,

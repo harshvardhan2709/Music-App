@@ -80,7 +80,7 @@ export default function GenreScreen() {
     };
 
     // If classification is in progress, show the loading screen
-    if (status === 'loading_songs' || status === 'classifying' || status === 'creating_playlists') {
+    if (status === 'loading_songs' || status === 'classifying') {
         return (
             <View style={{ flex: 1, backgroundColor: '#0a0a0a', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 }}>
                 <Animated.View entering={FadeIn.duration(600)} style={{ alignItems: 'center', width: '100%' }}>
@@ -112,7 +112,7 @@ export default function GenreScreen() {
                     }}>
                         {status === 'loading_songs' && '🔍 Scanning Device...'}
                         {status === 'classifying' && '🤖 AI Analyzing Songs...'}
-                        {status === 'creating_playlists' && '📂 Creating Playlists...'}
+
                     </Text>
 
                     {/* Progress message */}
@@ -272,8 +272,12 @@ export default function GenreScreen() {
                             data={genreSongs}
                             keyExtractor={(item) => item.id}
                             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
-                            renderItem={({ item, index }) => (
-                                <Animated.View entering={FadeInDown.delay(index * 40).duration(300)}>
+                            initialNumToRender={15}
+                            maxToRenderPerBatch={10}
+                            updateCellsBatchingPeriod={50}
+                            windowSize={5}
+                            removeClippedSubviews={true}
+                            renderItem={({ item }) => (
                                     <TouchableOpacity
                                         onPress={() => play(item, genreSongs)}
                                         activeOpacity={0.7}
@@ -320,7 +324,6 @@ export default function GenreScreen() {
                                             <FontAwesome name="play" size={12} color="rgba(255,255,255,0.3)" />
                                         </View>
                                     </TouchableOpacity>
-                                </Animated.View>
                             )}
                         />
                     )}
@@ -386,7 +389,7 @@ export default function GenreScreen() {
                         }}>
                             <FontAwesome name="check-circle" size={20} color="#22c55e" />
                             <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, flex: 1 }}>
-                                {totalSongs} songs classified into {activeGenres.length} genres. Playlists created! ✨
+                                {totalSongs} songs classified into {activeGenres.length} genres ✨
                             </Text>
                         </View>
                     </Animated.View>

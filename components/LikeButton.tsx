@@ -6,17 +6,18 @@ import { TouchableOpacity } from "react-native";
 import { useLikes } from "../hooks/useLikes";
 
 type Props = {
+    songId: string;
     song: any;
 };
 
-export default function LikeButton({ song }: Props) {
+const LikeButton = React.memo(({ songId, song }: Props) => {
     const { isLiked, toggleLike } = useLikes();
-    const liked = isLiked(song.id);
+    const liked = isLiked(songId);
 
     const onPress = () => {
         console.log(
             "[LikeButton] pressed for",
-            song.id,
+            songId,
             song.filename,
             "liked?",
             liked,
@@ -41,4 +42,9 @@ export default function LikeButton({ song }: Props) {
             />
         </TouchableOpacity>
     );
-}
+}, (prevProps, nextProps) => {
+    // Only re-render if the songId changes
+    return prevProps.songId === nextProps.songId;
+});
+
+export default LikeButton;

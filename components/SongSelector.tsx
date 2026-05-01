@@ -1,6 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as MediaLibrary from "expo-media-library";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     FlatList,
@@ -26,7 +26,9 @@ interface SongSelectorProps {
     onSelect: (song: Song) => void;
 }
 
-const SongSelectorItem = ({ item, onSelect }: { item: Song, onSelect: (song: Song) => void }) => {
+const ITEM_HEIGHT = 68;
+
+const SongSelectorItem = React.memo(({ item, onSelect }: { item: Song, onSelect: (song: Song) => void }) => {
     const [artwork, setArtwork] = useState<string | null>(null);
 
     useEffect(() => {
@@ -108,7 +110,7 @@ const SongSelectorItem = ({ item, onSelect }: { item: Song, onSelect: (song: Son
             />
         </TouchableOpacity>
     );
-};
+});
 
 export default function SongSelector({
     visible,
@@ -171,11 +173,26 @@ export default function SongSelector({
         }
     };
 
-    const handleSelect = (song: Song) => {
+    const handleSelect = useCallback((song: Song) => {
         onSelect(song);
         onClose();
         setSearchQuery("");
-    };
+    }, [onSelect, onClose]);
+
+    const keyExtractor = useCallback((item: Song) => item.id, []);
+
+    const getItemLayout = useCallback((_: any, index: number) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index,
+    }), []);
+
+    const renderItem = useCallback(({ item }: { item: Song }) => (
+        <SongSelectorItem
+            item={item}
+            onSelect={handleSelect}
+        />
+    ), [handleSelect]);
 
     return (
         <Modal
@@ -303,14 +320,15 @@ export default function SongSelector({
                     ) : (
                         <FlatList
                             data={filteredSongs}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={keyExtractor}
+                            renderItem={renderItem}
+                            getItemLayout={getItemLayout}
                             contentContainerStyle={{ paddingBottom: 40 }}
-                            renderItem={({ item }) => (
-                                <SongSelectorItem
-                                    item={item}
-                                    onSelect={handleSelect}
-                                />
-                            )}
+                            initialNumToRender={15}
+                            maxToRenderPerBatch={10}
+                            updateCellsBatchingPeriod={50}
+                            windowSize={5}
+                            removeClippedSubviews={true}
                         />
                     )}
                 </View>

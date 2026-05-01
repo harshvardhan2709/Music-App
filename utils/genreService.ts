@@ -3,11 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Custom genre categories as requested
 export const GENRE_LIST = [
     'Phonk',
-    'Feel Good',
     'Party',
-    'Chill',
-    'Meaningful',
     'Ringtone Worthy',
+    'English',
+    'Indian Music',
     'Uncategorized',
 ] as const;
 
@@ -16,22 +15,20 @@ export type GenreType = (typeof GENRE_LIST)[number];
 // Genre colors for UI display
 export const GENRE_COLORS: Record<GenreType, { bg: string; border: string; icon: string }> = {
     'Phonk': { bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.35)', icon: '#ef4444' },
-    'Feel Good': { bg: 'rgba(34, 197, 94, 0.15)', border: 'rgba(34, 197, 94, 0.35)', icon: '#22c55e' },
     'Party': { bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.35)', icon: '#f97316' },
-    'Chill': { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.35)', icon: '#3b82f6' },
-    'Meaningful': { bg: 'rgba(168, 85, 247, 0.15)', border: 'rgba(168, 85, 247, 0.35)', icon: '#a855f7' },
     'Ringtone Worthy': { bg: 'rgba(236, 72, 153, 0.15)', border: 'rgba(236, 72, 153, 0.35)', icon: '#ec4899' },
+    'English': { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.35)', icon: '#3b82f6' },
+    'Indian Music': { bg: 'rgba(168, 85, 247, 0.15)', border: 'rgba(168, 85, 247, 0.35)', icon: '#a855f7' },
     'Uncategorized': { bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)', icon: '#94a3b8' },
 };
 
 // Genre icons (FontAwesome icon names)
 export const GENRE_ICONS: Record<GenreType, string> = {
     'Phonk': 'bolt',
-    'Feel Good': 'sun-o',
     'Party': 'glass',
-    'Chill': 'leaf',
-    'Meaningful': 'heart',
     'Ringtone Worthy': 'bell',
+    'English': 'globe',
+    'Indian Music': 'star',
     'Uncategorized': 'question-circle',
 };
 
@@ -60,43 +57,51 @@ type GenreMap = Record<string, GenreType>;
 
 const GENRE_KEYWORDS: Record<GenreType, string[]> = {
     'Phonk': [
-        'phonk', 'drift', 'cowbell', 'memphis', 'funk', 'brazilian', 'mtg', 'mrd',
+        'phonk', 'cowbell', 'memphis rap',
         'kordhell', 'freddie dredd', 'dxrk', 'ghostface playa', 'sxmpra',
-        'sigma', 'gigachad', 'slowed', 'sped up', 'lxst cxntury', 'hensonn',
-    ],
-    'Feel Good': [
-        'happy', 'feel good', 'good vibes', 'positive', 'motivat', 'uplifting',
-        'sunshine', 'smile', 'beautiful', 'joy', 'wonderful', 'blessed',
+        'gigachad', 'lxst cxntury', 'hensonn', 'brazilian phonk', 'drift phonk',
+        'brazilian funk', 'funk phonk', 'mtg funk',
     ],
     'Party': [
         'party', 'club', 'dance', 'dj', 'edm', 'banger', 'remix', 'house',
         'techno', 'bass drop', 'hype', 'lit', 'turn up', 'night',
     ],
-    'Chill': [
-        'chill', 'lofi', 'lo-fi', 'relax', 'calm', 'peace', 'ambient',
-        'sleep', 'study', 'soft', 'gentle', 'acoustic', 'jazz', 'night drive',
-    ],
-    'Meaningful': [
-        'meaningful', 'deep', 'emotional', 'soul', 'heart', 'love', 'pain',
-        'sad', 'truth', 'life', 'story', 'message', 'struggle', 'real',
-    ],
     'Ringtone Worthy': [
         'ringtone', 'ton', 'alarm', 'short', 'intro', 'hook', 'jingle',
         'theme', 'bgm', 'ost', 'opening', 'ending', 'instrumental',
+    ],
+    'Indian Music': [
+        'bollywood', 'hindi', 'punjabi', 'desi', 'bhangra', 'arijit', 'atif',
+        'badshah', 'neha kakkar', 'shreya ghoshal', 'kumar sanu', 'kishore',
+        'lata', 'rafi', 'ar rahman', 'pritam', 'vishal', 'tanishk', 'jubin',
+        'darshan raval', 'b praak', 'guru randhawa', 'yo yo', 'raftaar',
+        'divine', 'emiway', 'sidhu', 'ap dhillon', 'diljit', 'garry sandhu',
+        'harrdy sandhu', 'jassie gill', 'kaka', 'pawan singh', 'khesari',
+        'tamil', 'telugu', 'kannada', 'marathi', 'bhojpuri', 'gujarati',
+        'sufi', 'ghazal', 'qawwali', 'devotional', 'bhajan', 'aarti',
+    ],
+    'English': [
+        'english', 'pop', 'rock', 'hip hop', 'rap', 'r&b', 'country',
+        'drake', 'taylor swift', 'ed sheeran', 'eminem', 'the weeknd',
+        'dua lipa', 'justin bieber', 'ariana grande', 'billie eilish',
+        'post malone', 'travis scott', 'kanye', 'kendrick', 'beyonce',
+        'rihanna', 'bruno mars', 'coldplay', 'imagine dragons', 'maroon',
+        'one direction', 'bts', 'blackpink', 'charlie puth', 'shawn mendes',
+        'lil nas', 'doja cat', 'sza', 'olivia rodrigo', 'harry styles',
     ],
     'Uncategorized': [],
 };
 
 function classifyLocally(filename: string): GenreType {
     const name = filename.toLowerCase();
-    
-    // Check Phonk specifically first because "funk" is common
-    for (const kw of GENRE_KEYWORDS.Phonk) {
-        if (name.includes(kw)) return 'Phonk';
+
+    // Check Indian Music before English since Indian artists may have English words
+    for (const kw of GENRE_KEYWORDS['Indian Music']) {
+        if (name.includes(kw)) return 'Indian Music';
     }
 
     for (const [genre, keywords] of Object.entries(GENRE_KEYWORDS)) {
-        if (genre === 'Phonk' || genre === 'Uncategorized') continue;
+        if (genre === 'Indian Music' || genre === 'Uncategorized') continue;
         for (const kw of keywords) {
             if (name.includes(kw)) return genre as GenreType;
         }
@@ -136,15 +141,14 @@ function buildMessages(songs: { id: string; filename: string }[]) {
         {
             role: 'system',
             content: `You are a music genre classifier. You classify songs into exactly one genre based on filename.
-IMPORTANT: Categorize both "Phonk" and any kind of "Funk" (like Brazilian Funk, Drift Funk, MTG) under the "Phonk" genre.
+Be strict about Phonk — only classify songs as Phonk if the filename clearly indicates phonk, drift phonk, Brazilian phonk/funk, or known phonk artists. Do NOT classify regular songs as Phonk just because they sound aggressive or have "slowed" or "sped up" in the name.
 Genres: ${genreOptions}
-- Phonk: Includes Phonk, Funk (Brazilian/Drift), Dark, aggressive, Memphis rap, cowbell beats, sigma/gigachad music.
-- Feel Good: Uplifting, happy, positive vibes, motivational, cheerful.
-- Party: Dance, club, EDM, high energy, electronic bangers.
-- Chill: Relaxing, lo-fi, ambient, calm, peaceful, study music.
-- Meaningful: Deep lyrics, emotional, soulful, powerful messages, ballads.
-- Ringtone Worthy: Catchy hooks, iconic intros, short tunes, notification sounds.
-- Uncategorized: Doesn't fit above categories, unknown, recordings.
+- Phonk: ONLY actual Phonk music — drift phonk, Brazilian phonk/funk, Memphis phonk, cowbell beats, known phonk artists (Kordhell, Freddie Dredd, DXRK, Ghostface Playa). NOT regular hip-hop, trap, or aggressive music.
+- Party: Dance, club, EDM, high energy, electronic bangers, remix tracks.
+- Ringtone Worthy: Catchy hooks, iconic intros, short tunes, notification sounds, instrumentals, BGM/OST.
+- English: English language songs — pop, rock, hip hop, rap, R&B, country, alternative, indie, etc.
+- Indian Music: Bollywood, Hindi, Punjabi, Tamil, Telugu, Kannada, Marathi, Bhojpuri songs, desi hip-hop, bhangra, Sufi, devotional, ghazals.
+- Uncategorized: Doesn't fit above categories, unknown, recordings, or ambiguous.
 Respond ONLY with raw JSON: {"songId": "Genre"}`,
         },
         {
