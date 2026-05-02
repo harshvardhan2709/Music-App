@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import SongImage from "../../../components/SongImage";
 import { useRouter } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
@@ -6,8 +7,8 @@ import DraggableFlatList, {
     RenderItemParams,
     ScaleDecorator,
 } from "react-native-draggable-flatlist";
-import LikeButton from "../../components/LikeButton";
-import { useAudioPlayer } from "../../context/AudioPlayerContext";
+import LikeButton from "../../../components/LikeButton";
+import { useAudioPlayer } from "../../../context/AudioPlayerContext";
 
 export default function QueueScreen() {
     const router = useRouter();
@@ -104,22 +105,11 @@ export default function QueueScreen() {
                                 : "transparent",
                         }}
                     >
-                        {/* Album Art */}
-                        <View
-                            style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: 10,
-                                backgroundColor: "rgba(255, 255, 255, 0.04)",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                marginRight: 12,
-                            }}
-                        >
-                            <FontAwesome
-                                name="music"
-                                size={16}
-                                color="rgba(255, 255, 255, 0.25)"
+                        <View style={{ marginRight: 12 }}>
+                            <SongImage 
+                                uri={item.uri} 
+                                id={item.id} 
+                                iconSize={16}
                             />
                         </View>
 
@@ -236,18 +226,14 @@ export default function QueueScreen() {
                             borderColor: "rgba(127, 25, 230, 0.3)",
                         }}
                     >
-                        <View
-                            style={{
-                                width: 52,
-                                height: 52,
-                                borderRadius: 12,
-                                backgroundColor: "rgba(127, 25, 230, 0.25)",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                marginRight: 14,
-                            }}
-                        >
-                            <FontAwesome name="music" size={22} color="#c084fc" />
+                        <View style={{ marginRight: 14 }}>
+                            <SongImage 
+                                uri={currentSong.uri} 
+                                id={currentSong.id} 
+                                size={52}
+                                iconSize={22}
+                                isCurrent={true}
+                            />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text

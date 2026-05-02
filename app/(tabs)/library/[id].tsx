@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import SongImage from "../../../components/SongImage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useState } from "react";
@@ -10,8 +11,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { useAudioPlayer } from "../../context/AudioPlayerContext";
-import { usePlaylists } from "../../context/PlaylistsContext";
+import { useAudioPlayer } from "../../../context/AudioPlayerContext";
+import { usePlaylists } from "../../../context/PlaylistsContext";
 
 export default function PlaylistDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -183,19 +184,12 @@ export default function PlaylistDetailScreen() {
                             style={{ flex: 1, flexDirection: "row", alignItems: "center" }}
                             onPress={() => play(item, playlist.songs)}
                         >
-                            {/* Album Art Placeholder */}
-                            <View
-                                style={{
-                                    width: 44,
-                                    height: 44,
-                                    borderRadius: 10,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    marginRight: 12,
-                                    backgroundColor: "rgba(127, 25, 230, 0.1)",
-                                }}
-                            >
-                                <FontAwesome name="music" size={18} color="#7f19e6" />
+                            <View style={{ marginRight: 12 }}>
+                                <SongImage 
+                                    uri={item.uri} 
+                                    id={item.id} 
+                                    iconSize={18}
+                                />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text

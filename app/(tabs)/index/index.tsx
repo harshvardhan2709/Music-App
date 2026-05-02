@@ -18,11 +18,11 @@ import Animated, {
   FadeOutDown,
   Layout,
 } from "react-native-reanimated";
-import { Image as ExpoImage } from "expo-image";
-import AddToPlaylistModal from "../../components/AddToPlaylistModal";
-import LikeButton from "../../components/LikeButton";
-import { useAudioPlayer } from "../../context/AudioPlayerContext";
-import { getSongMetadata, preloadMetadataCache } from "../../utils/metadataUtils";
+import SongImage from "../../../components/SongImage";
+import AddToPlaylistModal from "../../../components/AddToPlaylistModal";
+import LikeButton from "../../../components/LikeButton";
+import { useAudioPlayer } from "../../../context/AudioPlayerContext";
+import { preloadMetadataCache } from "../../../utils/metadataUtils";
 
 type SongWithDuration = MediaLibrary.Asset & {
   realDuration?: number;
@@ -31,19 +31,6 @@ type SongWithDuration = MediaLibrary.Asset & {
 const ITEM_HEIGHT = 68; // 44px content + 12*2 padding + 6 marginBottom ≈ 68
 
 const SongListItem = React.memo(({ item, isCurrent }: { item: SongWithDuration, isCurrent: boolean }) => {
-  const [artwork, setArtwork] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-        const meta = await getSongMetadata(item.uri, item.id);
-        if (isMounted && meta?.artwork) {
-          setArtwork(meta.artwork);
-        }
-    })();
-    return () => { isMounted = false; };
-  }, [item.id, item.uri]);
-
   return (
     <View
       style={{
@@ -63,34 +50,12 @@ const SongListItem = React.memo(({ item, isCurrent }: { item: SongWithDuration, 
       }}
     >
       {/* Album Art */}
-      <View
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 10,
-          justifyContent: "center",
-          alignItems: "center",
-          marginRight: 12,
-          backgroundColor: isCurrent
-            ? "rgba(127, 25, 230, 0.3)"
-            : "rgba(127, 25, 230, 0.1)",
-          overflow: "hidden",
-        }}
-      >
-        {artwork ? (
-          <ExpoImage
-            source={{ uri: artwork }}
-            style={{ width: "100%", height: "100%" }}
-            contentFit="cover"
-            transition={200}
-          />
-        ) : (
-          <FontAwesome
-            name={isCurrent ? "volume-up" : "music"}
-            size={isCurrent ? 16 : 18}
-            color={isCurrent ? "#c084fc" : "#7f19e6"}
-          />
-        )}
+      <View style={{ marginRight: 12 }}>
+        <SongImage 
+          uri={item.uri} 
+          id={item.id} 
+          isCurrent={isCurrent} 
+        />
       </View>
 
       {/* Song Info */}
@@ -403,7 +368,7 @@ export default function MusicPlayerScreen() {
       )}
       {/* Floating Queue Button */}
       <TouchableOpacity
-        onPress={() => router.push("/index/current-queue" as any)}
+        onPress={() => router.push("/current-queue" as any)}
         style={{
           position: "absolute",
           right: 20,

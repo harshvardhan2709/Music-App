@@ -3,13 +3,14 @@
 import { Stack, usePathname } from "expo-router";
 import React from "react";
 
-export default function TabsLayout() {
+export default function LibraryStack() {
     const pathname = usePathname();
     return (
         <Stack
             screenOptions={{
                 animation: "slide_from_right",
             }}
+            initialRouteName="index"
         >
             <Stack.Screen
                 name="index"

@@ -9,7 +9,7 @@ import {
     View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useGenre } from "../../context/GenreContext";
+import { useGenre } from "../../../context/GenreContext";
 
 export default function FeaturesScreen() {
     const [showConfirmModal, setShowConfirmModal] = useState(false);

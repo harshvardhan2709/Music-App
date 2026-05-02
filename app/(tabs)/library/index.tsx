@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { usePlaylists } from "../../context/PlaylistsContext";
+import { usePlaylists } from "../../../context/PlaylistsContext";
 
 export default function LibraryScreen() {
   const { playlists, createPlaylist } = usePlaylists();

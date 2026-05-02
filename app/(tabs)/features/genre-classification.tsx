@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import SongImage from '../../../components/SongImage';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -16,14 +17,14 @@ import Animated, {
     FadeInUp,
     SlideInRight,
 } from 'react-native-reanimated';
-import { useAudioPlayer } from '../../context/AudioPlayerContext';
-import { useGenre } from '../../context/GenreContext';
+import { useAudioPlayer } from '../../../context/AudioPlayerContext';
+import { useGenre } from '../../../context/GenreContext';
 import {
     type GenreType,
     GENRE_COLORS,
     GENRE_ICONS,
     GENRE_LIST,
-} from '../../utils/genreService';
+} from '../../../utils/genreService';
 
 type SongAsset = MediaLibrary.Asset & { realDuration?: number };
 
@@ -291,16 +292,12 @@ export default function GenreScreen() {
                                             borderRadius: 16,
                                             backgroundColor: 'rgba(255, 255, 255, 0.03)',
                                         }}>
-                                            <View style={{
-                                                width: 44,
-                                                height: 44,
-                                                borderRadius: 10,
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                marginRight: 12,
-                                                backgroundColor: colors.bg,
-                                            }}>
-                                                <FontAwesome name={iconName} size={18} color={colors.icon} />
+                                            <View style={{ marginRight: 12 }}>
+                                                <SongImage 
+                                                    uri={item.uri} 
+                                                    id={item.id} 
+                                                    iconSize={18}
+                                                />
                                             </View>
                                             <View style={{ flex: 1 }}>
                                                 <Text

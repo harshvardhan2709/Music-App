@@ -2,9 +2,11 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
-import LikeButton from "../../components/LikeButton";
-import { useAudioPlayer } from "../../context/AudioPlayerContext";
-import { useLikes } from "../../hooks/useLikes";
+import LikeButton from "../../../components/LikeButton";
+import { useAudioPlayer } from "../../../context/AudioPlayerContext";
+import { useLikes } from "../../../hooks/useLikes";
+
+import SongImage from "../../../components/SongImage";
 
 const ITEM_HEIGHT = 68;
 
@@ -26,24 +28,13 @@ const FavoriteSongItem = React.memo(({ item, isCurrent }: { item: any, isCurrent
                 : "transparent",
         }}
     >
-        {/* Album Art Placeholder */}
-        <View
-            style={{
-                width: 44,
-                height: 44,
-                borderRadius: 10,
-                justifyContent: "center",
-                alignItems: "center",
-                marginRight: 12,
-                backgroundColor: isCurrent
-                    ? "rgba(127, 25, 230, 0.3)"
-                    : "rgba(239, 68, 68, 0.1)",
-            }}
-        >
-            <FontAwesome
-                name={isCurrent ? "volume-up" : "heart"}
-                size={isCurrent ? 16 : 18}
-                color={isCurrent ? "#c084fc" : "#ff4444"}
+        {/* Album Art */}
+        <View style={{ marginRight: 12 }}>
+            <SongImage 
+                uri={item.uri} 
+                id={item.id} 
+                isCurrent={isCurrent} 
+                iconSize={18}
             />
         </View>
 

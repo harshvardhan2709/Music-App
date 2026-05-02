@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import SongImage from '../../../components/SongImage';
 import * as MediaLibrary from 'expo-media-library';
 import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -12,8 +13,8 @@ import {
     View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { useAudioPlayer } from '../../context/AudioPlayerContext';
-import { aiSmartFilter } from '../../utils/aiFilterService';
+import { useAudioPlayer } from '../../../context/AudioPlayerContext';
+import { aiSmartFilter } from '../../../utils/aiFilterService';
 
 const ITEM_HEIGHT = 68;
 
@@ -33,23 +34,12 @@ const SongItem = React.memo(({ item, isCurrent }: { item: MediaLibrary.Asset; is
             borderColor: isCurrent ? 'rgba(127, 25, 230, 0.4)' : 'transparent',
         }}
     >
-        <View
-            style={{
-                width: 44,
-                height: 44,
-                borderRadius: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: 12,
-                backgroundColor: isCurrent
-                    ? 'rgba(127, 25, 230, 0.3)'
-                    : 'rgba(14, 165, 233, 0.1)',
-            }}
-        >
-            <FontAwesome
-                name={isCurrent ? 'volume-up' : 'music'}
-                size={isCurrent ? 16 : 18}
-                color={isCurrent ? '#c084fc' : '#0ea5e9'}
+        <View style={{ marginRight: 12 }}>
+            <SongImage 
+                uri={item.uri} 
+                id={item.id} 
+                isCurrent={isCurrent} 
+                iconSize={18}
             />
         </View>
         <View style={{ flex: 1 }}>

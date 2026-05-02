@@ -2,12 +2,12 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import FileTransferProgress from "../../components/FileTransferProgress";
-import QRCodeDisplay from "../../components/QRCodeDisplay";
-import QRScanner from "../../components/QRScanner";
-import SongSelector from "../../components/SongSelector";
-import { useShare } from "../../context/ShareContext";
-import { saveReceivedFile } from "../../utils/fileUtils";
+import FileTransferProgress from "../../../components/FileTransferProgress";
+import QRCodeDisplay from "../../../components/QRCodeDisplay";
+import QRScanner from "../../../components/QRScanner";
+import SongSelector from "../../../components/SongSelector";
+import { useShare } from "../../../context/ShareContext";
+import { saveReceivedFile } from "../../../utils/fileUtils";
 
 type TabMode = "send" | "receive";
 
