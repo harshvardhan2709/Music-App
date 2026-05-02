@@ -1,4 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { router } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import LikeButton from "../../components/LikeButton";
@@ -130,31 +131,53 @@ export default function FavoritesScreen() {
                     style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "rgba(239, 68, 68, 0.1)",
-                        borderWidth: 1,
-                        borderColor: "rgba(239, 68, 68, 0.2)",
-                        borderRadius: 24,
-                        padding: 16,
+                        gap: 12,
                     }}
                 >
-                    <FontAwesome
-                        name="heart"
-                        size={20}
-                        color="#ff4444"
-                        style={{ marginRight: 10 }}
-                    />
-                    <Text
+                    <TouchableOpacity
+                        onPress={() => router.back()}
                         style={{
-                            fontSize: 20,
-                            fontWeight: "700",
-                            color: "#ffffff",
-                            flex: 1,
-                            textAlign: "center",
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: "rgba(25, 4, 25, 0.85)",
+                            borderWidth: 1,
+                            borderColor: "rgba(239, 68, 68, 0.25)",
+                            justifyContent: "center",
+                            alignItems: "center",
                         }}
                     >
-                        Favorites
-                    </Text>
-                    <View style={{ width: 30 }} />
+                        <FontAwesome name="arrow-left" size={16} color="#ff4444" />
+                    </TouchableOpacity>
+
+                    <View
+                        style={{
+                            flex: 1,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            backgroundColor: "rgba(239, 68, 68, 0.1)",
+                            borderWidth: 1,
+                            borderColor: "rgba(239, 68, 68, 0.2)",
+                            borderRadius: 24,
+                            padding: 14,
+                        }}
+                    >
+                        <FontAwesome
+                            name="heart"
+                            size={18}
+                            color="#ff4444"
+                            style={{ marginRight: 10 }}
+                        />
+                        <Text
+                            style={{
+                                fontSize: 18,
+                                fontWeight: "700",
+                                color: "#ffffff",
+                            }}
+                        >
+                            Favorites
+                        </Text>
+                    </View>
                 </View>
             </View>
 

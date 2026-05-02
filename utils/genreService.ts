@@ -35,14 +35,14 @@ export const GENRE_ICONS: Record<GenreType, string> = {
 // =========================================================================
 // GROQ API CONFIG
 // =========================================================================
-const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY || '';
+const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY || '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL = 'llama-3.1-8b-instant';
 
 const GENRE_STORAGE_KEY = 'Msick-genre-map';
-const BATCH_SIZE = 30;
+const BATCH_SIZE = 100;
 const MAX_RETRIES = 3;
-const BASE_RETRY_DELAY_MS = 3000;
+const BASE_RETRY_DELAY_MS = 5000;
 
 type SongInput = {
     id: string;
@@ -242,7 +242,7 @@ export async function classifyAllSongs(
         Object.assign(allResults, batchResult);
         completed += batch.length;
         onProgress(completed, totalSongs, `Done ${completed}/${totalSongs}`);
-        if (i < batches.length - 1) await new Promise(r => setTimeout(r, 2000));
+        if (i < batches.length - 1) await new Promise(r => setTimeout(r, 3000));
     }
 
     const existing = await loadGenreMap();

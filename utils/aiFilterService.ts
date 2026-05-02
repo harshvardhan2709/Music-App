@@ -4,13 +4,13 @@ import * as MediaLibrary from 'expo-media-library';
 // AI SMART FILTER — User-prompted song filtering via Groq AI
 // =========================================================================
 
-const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY || '';
+const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY || '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL = 'llama-3.1-8b-instant';
 
-const BATCH_SIZE = 40;
+const BATCH_SIZE = 100;
 const MAX_RETRIES = 2;
-const BASE_RETRY_DELAY_MS = 3000;
+const BASE_RETRY_DELAY_MS = 5000;
 
 type SongInput = {
     id: string;
@@ -33,8 +33,8 @@ async function filterBatch(
             content: `You are a music recommendation assistant. The user will give you a request describing what kind of songs they want. You will be given a list of songs (with IDs and filenames). Your job is to pick the songs that best match the user's request based on the filename.
 
 Rules:
-- Return ONLY the IDs of matching songs as a JSON array: ["id1", "id2", ...]
-- If no songs match, return an empty array: []
+- Return ONLY a JSON object with a single key "ids" containing an array of matching song IDs: {"ids": ["id1", "id2"]}
+- If no songs match, return an empty array: {"ids": []}
 - Be generous but relevant — if a song filename reasonably fits the request, include it.
 - Judge based on song name, artist name, and any other info in the filename.
 - Return raw JSON only, no explanation.`,
@@ -74,11 +74,12 @@ Rules:
 
         const data = await response.json();
         const textContent = data?.choices?.[0]?.message?.content || '';
+        console.log('AI Filter Raw Response:', textContent);
 
         try {
             const parsed = JSON.parse(textContent);
             // Handle both {"results": [...]} and [...] formats
-            const ids: string[] = Array.isArray(parsed)
+            const ids: any[] = Array.isArray(parsed)
                 ? parsed
                 : Array.isArray(parsed.results)
                     ? parsed.results
@@ -90,9 +91,11 @@ Rules:
 
             // Validate — only keep IDs that exist in our song list
             const validIds = new Set(songs.map((s) => s.id));
-            return ids.filter((id) => validIds.has(id));
-        } catch {
-            console.error('Failed to parse AI filter response');
+            const matchedIds = ids.map(String).filter((id) => validIds.has(id));
+            console.log(`Matched ${matchedIds.length} out of ${ids.length} IDs returned by AI`);
+            return matchedIds;
+        } catch (e) {
+            console.error('Failed to parse AI filter response:', e);
             return [];
         }
     } catch (error) {
@@ -151,7 +154,7 @@ export async function aiSmartFilter(
 
         // Rate limit buffer between batches
         if (i < batches.length - 1) {
-            await new Promise((r) => setTimeout(r, 1500));
+            await new Promise((r) => setTimeout(r, 3000));
         }
     }
 
