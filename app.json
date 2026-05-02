@@ -5,14 +5,15 @@
     "icon": "./assets/icon.png",
     "version": "1.0.0",
     "orientation": "portrait",
-
     "scheme": "Msick",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -41,7 +42,8 @@
         {
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

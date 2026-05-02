@@ -22,7 +22,7 @@ import { Image as ExpoImage } from "expo-image";
 import AddToPlaylistModal from "../../components/AddToPlaylistModal";
 import LikeButton from "../../components/LikeButton";
 import { useAudioPlayer } from "../../context/AudioPlayerContext";
-import { getSongMetadata } from "../../utils/metadataUtils";
+import { getSongMetadata, preloadMetadataCache } from "../../utils/metadataUtils";
 
 type SongWithDuration = MediaLibrary.Asset & {
   realDuration?: number;
@@ -155,19 +155,20 @@ export default function MusicPlayerScreen() {
       return;
     }
 
+    // Preload all cached metadata in one bulk DB query
+    await preloadMetadataCache();
+
     const media = await MediaLibrary.getAssetsAsync({
       mediaType: MediaLibrary.MediaType.audio,
       first: 500,
     });
 
-    const result: SongWithDuration[] = [];
-    for (const asset of media.assets) {
-      const info = await MediaLibrary.getAssetInfoAsync(asset);
-      result.push({
-        ...asset,
-        realDuration: info.duration ? info.duration * 1000 : undefined,
-      });
-    }
+    // Use duration directly from getAssetsAsync (already available)
+    // No need to call getAssetInfoAsync for each song individually
+    const result: SongWithDuration[] = media.assets.map(asset => ({
+      ...asset,
+      realDuration: asset.duration ? asset.duration * 1000 : undefined,
+    }));
 
     setSongs(result);
     setLoading(false);
@@ -402,7 +403,7 @@ export default function MusicPlayerScreen() {
       )}
       {/* Floating Queue Button */}
       <TouchableOpacity
-        onPress={() => router.push("/queue" as any)}
+        onPress={() => router.push("/index/current-queue" as any)}
         style={{
           position: "absolute",
           right: 20,

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as MediaLibrary from 'expo-media-library';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
@@ -7,6 +6,7 @@ import {
     classifyAllSongs,
     loadGenreMap,
 } from '../utils/genreService';
+import { getKV, setKV, removeKV, clearGenreMapDB } from '../utils/database';
 
 
 type GenreMap = Record<string, GenreType>;
@@ -60,7 +60,7 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
                 setGenreMap(existing);
                 setHasClassified(true);
             }
-            const flag = await AsyncStorage.getItem(CLASSIFIED_FLAG_KEY);
+            const flag = await getKV(CLASSIFIED_FLAG_KEY);
             if (flag === 'true') {
                 setHasClassified(true);
             }
@@ -89,8 +89,8 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
     }, [genreMap]);
 
     const resetClassification = useCallback(async () => {
-        await AsyncStorage.removeItem('Msick-genre-map');
-        await AsyncStorage.removeItem('Msick-genre-classified');
+        await clearGenreMapDB();
+        await removeKV(CLASSIFIED_FLAG_KEY);
         setGenreMap({});
         setHasClassified(false);
         setStatus('idle');
@@ -107,8 +107,8 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
             setErrorMessage('');
 
             // Clear any stale data from previous failed runs
-            await AsyncStorage.removeItem('Msick-genre-map');
-            await AsyncStorage.removeItem('Msick-genre-classified');
+            await clearGenreMapDB();
+            await removeKV(CLASSIFIED_FLAG_KEY);
             setGenreMap({});
             setHasClassified(false);
 
@@ -161,7 +161,7 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
             setProgressMessage(`Done! Classified ${songs.length} songs into ${activeGenreCount} genres.`);
             setStatus('done');
             setHasClassified(true);
-            await AsyncStorage.setItem(CLASSIFIED_FLAG_KEY, 'true');
+            await setKV(CLASSIFIED_FLAG_KEY, 'true');
 
         } catch (error) {
             console.error('Classification error:', error);

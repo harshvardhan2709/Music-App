@@ -8,13 +8,14 @@ export default function TabsLayout() {
     return (
         <Stack
             screenOptions={{
-                animation: pathname.startsWith("/library") ? "default" : "none",
+                animation: "slide_from_right",
             }}
         >
             <Stack.Screen
                 name="index"
                 options={{ title: "My Library", headerShown: false }}
             />
+            <Stack.Screen name="liked-songs" options={{ title: "Favorites", headerShown: false }} />
             <Stack.Screen name="[id]" options={{ headerShown: false }} />
         </Stack>
     );

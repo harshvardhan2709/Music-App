@@ -53,12 +53,7 @@ export default function QueueScreen() {
             });
             const newQueue = [...beforeAndCurrent, ...newUpNext];
 
-            // Apply moves to synchronize the context
-            // We'll do this by rebuilding from scratch via moveInQueue calls
-            // But the simplest way is to set queue directly — let's use a series of moves
-            // Actually, we need a setQueue method. For now, let's do sequential moves.
-
-            // More efficient: determine moves needed
+            // determine moves needed
             for (let i = 0; i < data.length; i++) {
                 const fromActual = data[i]._actualIndex;
                 const toActual = currentIndex + 1 + i;

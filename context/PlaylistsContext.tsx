@@ -1,5 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+    loadPlaylistsFromDB,
+    createPlaylistInDB,
+    deletePlaylistFromDB,
+    renamePlaylistInDB,
+    addSongToPlaylistInDB,
+    removeSongFromPlaylistInDB,
+} from '../utils/database';
 
 export type Song = {
     id: string;
@@ -34,8 +41,6 @@ const PlaylistsContext = createContext<PlaylistsContextType>({
     removeSongFromPlaylist: async () => { },
 });
 
-const STORAGE_KEY = 'Msick-playlists';
-
 export function PlaylistsProvider({ children }: { children: React.ReactNode }) {
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
 
@@ -45,66 +50,77 @@ export function PlaylistsProvider({ children }: { children: React.ReactNode }) {
 
     const loadPlaylists = async () => {
         try {
-            const stored = await AsyncStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                setPlaylists(JSON.parse(stored));
-            }
+            const stored = await loadPlaylistsFromDB();
+            setPlaylists(stored);
         } catch (e) {
             console.error('Failed to load playlists', e);
         }
     };
 
-    const savePlaylists = async (newPlaylists: Playlist[]) => {
+    const createPlaylist = async (name: string) => {
+        const id = Date.now().toString();
+        const createdAt = Date.now();
         try {
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newPlaylists));
-            setPlaylists(newPlaylists);
+            await createPlaylistInDB(id, name, createdAt);
+            const newPlaylist: Playlist = { id, name, songs: [], createdAt };
+            setPlaylists(prev => [...prev, newPlaylist]);
         } catch (e) {
-            console.error('Failed to save playlists', e);
+            console.error('Failed to create playlist', e);
         }
     };
 
-    const createPlaylist = async (name: string) => {
-        const newPlaylist: Playlist = {
-            id: Date.now().toString(),
-            name,
-            songs: [],
-            createdAt: Date.now(),
-        };
-        await savePlaylists([...playlists, newPlaylist]);
-    };
-
     const deletePlaylist = async (playlistId: string) => {
-        await savePlaylists(playlists.filter(p => p.id !== playlistId));
+        try {
+            await deletePlaylistFromDB(playlistId);
+            setPlaylists(prev => prev.filter(p => p.id !== playlistId));
+        } catch (e) {
+            console.error('Failed to delete playlist', e);
+        }
     };
 
     const renamePlaylist = async (playlistId: string, newName: string) => {
-        const updated = playlists.map(p =>
-            p.id === playlistId ? { ...p, name: newName } : p
-        );
-        await savePlaylists(updated);
+        try {
+            await renamePlaylistInDB(playlistId, newName);
+            setPlaylists(prev =>
+                prev.map(p => p.id === playlistId ? { ...p, name: newName } : p)
+            );
+        } catch (e) {
+            console.error('Failed to rename playlist', e);
+        }
     };
 
     const addSongToPlaylist = async (playlistId: string, song: Song) => {
-        const updated = playlists.map(p => {
-            if (p.id === playlistId) {
-                // Avoid duplicates if needed, or allow them. Let's allow for now or check by ID.
-                const exists = p.songs.some(s => s.id === song.id);
-                if (exists) return p;
-                return { ...p, songs: [...p.songs, song] };
-            }
-            return p;
-        });
-        await savePlaylists(updated);
+        try {
+            const added = await addSongToPlaylistInDB(playlistId, song);
+            if (!added) return; // duplicate, skip state update
+
+            setPlaylists(prev =>
+                prev.map(p => {
+                    if (p.id === playlistId) {
+                        return { ...p, songs: [...p.songs, song] };
+                    }
+                    return p;
+                })
+            );
+        } catch (e) {
+            console.error('Failed to add song to playlist', e);
+        }
     };
 
     const removeSongFromPlaylist = async (playlistId: string, songId: string) => {
-        const updated = playlists.map(p => {
-            if (p.id === playlistId) {
-                return { ...p, songs: p.songs.filter(s => s.id !== songId) };
-            }
-            return p;
-        });
-        await savePlaylists(updated);
+        try {
+            await removeSongFromPlaylistInDB(playlistId, songId);
+            setPlaylists(prev =>
+                prev.map(p => {
+                    if (p.id === playlistId) {
+                        return { ...p, songs: p.songs.filter(s => s.id !== songId) };
+                    }
+                    return p;
+                })
+            );
+        } catch (e) {
+            console.error('Failed to remove song from playlist', e);
+        }
     };
 
     return (

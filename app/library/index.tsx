@@ -93,7 +93,7 @@ export default function LibraryScreen() {
                 borderWidth: 1,
                 borderColor: "rgba(239, 68, 68, 0.2)",
               }}
-              onPress={() => router.push("/favorites")}
+              onPress={() => router.push("/library/liked-songs")}
             >
               <View
                 style={{

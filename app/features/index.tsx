@@ -18,7 +18,7 @@ export default function FeaturesScreen() {
     const handleGenrePress = () => {
         if (hasClassified) {
             // Already classified, go directly to results
-            router.push("/genre" as any);
+            router.push("/features/genre-classification" as any);
         } else {
             // Show confirmation popup
             setShowConfirmModal(true);
@@ -28,7 +28,7 @@ export default function FeaturesScreen() {
     const handleConfirmClassification = async () => {
         setShowConfirmModal(false);
         // Navigate to genre screen first so the loading screen shows there
-        router.push("/genre" as any);
+        router.push("/features/genre-classification" as any);
         // Small delay to ensure navigation completes
         await new Promise(resolve => setTimeout(resolve, 300));
         // Start the classification
@@ -57,7 +57,7 @@ export default function FeaturesScreen() {
             <View className="flex-1 px-5">
                 {/* Share Music Card */}
                 <TouchableOpacity
-                    onPress={() => router.push("/share")}
+                    onPress={() => router.push("/features/share-music")}
                     style={{
                         flexDirection: "row",
                         alignItems: "center",
@@ -210,7 +210,7 @@ export default function FeaturesScreen() {
                 {/* AI Smart Filter Card */}
                 <Animated.View entering={FadeInDown.delay(150).duration(400)}>
                     <TouchableOpacity
-                        onPress={() => router.push("/smart-filter" as any)}
+                        onPress={() => router.push("/features/ai-filter" as any)}
                         style={{
                             flexDirection: "row",
                             alignItems: "center",

@@ -107,46 +107,13 @@ export default function TabsLayout() {
                     }}
                   />
 
-                  <Tabs.Screen
-                    name="favorites"
-                    options={{
-                      href: null,
-                      headerShown: false,
-                    }}
-                  />
-
-                  <Tabs.Screen
-                    name="share"
-                    options={{
-                      href: null,
-                      headerShown: false,
-                    }}
-                  />
-
-                  <Tabs.Screen
-                    name="queue"
-                    options={{
-                      href: null,
-                      headerShown: false,
-                    }}
-                  />
-
-                  <Tabs.Screen
-                    name="genre"
-                    options={{
-                      href: null,
-                      headerShown: false,
-                    }}
-                  />
-
-                  <Tabs.Screen
-                    name="smart-filter"
-                    options={{
-                      href: null,
-                      headerShown: false,
-                      tabBarStyle: { display: 'none' },
-                    }}
-                  />
+                  {/* Hidden nested routes */}
+                  <Tabs.Screen name="index/current-queue" options={{ headerShown: false, tabBarButton: () => null }} />
+                  <Tabs.Screen name="library/liked-songs" options={{ headerShown: false, tabBarButton: () => null }} />
+                  <Tabs.Screen name="library/[id]" options={{ headerShown: false, tabBarButton: () => null }} />
+                  <Tabs.Screen name="features/share-music" options={{ headerShown: false, tabBarButton: () => null }} />
+                  <Tabs.Screen name="features/genre-classification" options={{ headerShown: false, tabBarButton: () => null }} />
+                  <Tabs.Screen name="features/ai-filter" options={{ headerShown: false, tabBarButton: () => null }} />
                 </Tabs>
 
                 <MiniPlayer />
