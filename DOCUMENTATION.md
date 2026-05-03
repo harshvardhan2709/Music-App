@@ -1,122 +1,112 @@
-# Msick - Project Documentation
+# Msick - Technical Documentation
 
 ## 1. Overview
-**Msick** is an advanced, local-first music player application built with React Native and Expo. It aims to elevate the local music listening experience by introducing AI-driven features like smart categorization, natural language filtering, and robust metadata extraction, seamlessly wrapped in a beautiful, highly-optimized user interface styled with TailwindCSS (NativeWind).
+**Msick** is an advanced, local-first music player application built with React Native and Expo. It leverages high-performance native modules and LLM-based intelligence to bridge the gap between traditional local playback and modern AI-driven discovery.
 
-## 2. Core Features
+---
 
-### Local Music Playback
-- Discovers and loads audio files directly from the device's local storage.
-- Full playback controls: Play, Pause, Next, Previous, Seek, Shuffle, and Repeat Modes (Off, All, One).
-- Lock screen integration and background audio support via `expo-audio`.
+## 2. Architecture & Data Flow
 
-### AI-Driven Genre Classification
-- Uses the **Groq API (Llama 3.1 8B/3.3 70B)** to automatically categorize songs into specific genres (e.g., Phonk, Party, Ringtone Worthy, English, Indian Music) based on their filenames.
-- Batches API requests for optimization and handles rate limiting.
-- Includes a lightning-fast offline fallback classifier based on hardcoded keywords for instances where the API is unavailable.
+Msick follows a "Local-First, AI-Enhanced" architecture:
+1. **Asset Discovery:** `expo-media-library` scans the device for audio assets.
+2. **Metadata Extraction:** `music-metadata-browser` parses ID3 tags in the background.
+3. **Persistent Storage:** Metadata and AI classifications are cached in a relational **SQLite** database.
+4. **Intelligence Layer:** Groq API (Llama 3.x) performs zero-shot classification and semantic filtering.
+5. **UI Layer:** NativeWind (TailwindCSS) and Reanimated provide a fluid, premium interface.
 
-### AI Smart Filter
-- Enables users to query their music library using natural language prompts (e.g., "Show me upbeat party songs" or "Chill music").
-- Groq AI analyzes the prompt against local filenames to return a tailored playlist instantly.
+---
 
-### Rich Metadata & Album Art Extraction
-- Extracts embedded ID3 tags, including song titles, artists, albums, and artwork using `music-metadata-browser`.
-- Employs a robust `expo-file-system` caching strategy to store extracted album artwork locally, bypassing standard SQLite database size limitations and ensuring instantaneous image loading across sessions.
+## 3. Database Schema (SQLite)
 
-### Peer-to-Peer (P2P) File Sharing (WIP)
-- Built-in local network server (using `react-native-tcp-socket`) to allow users to share tracks with other devices over the same local network without requiring an active internet connection.
+Msick uses `expo-sqlite` with WAL mode enabled for optimal performance. The database is initialized in `utils/database.ts`.
 
-## 3. Tech Stack & Architecture
+### `metadata_cache`
+Stores extracted ID3 tags to avoid expensive re-parsing.
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `song_id` | TEXT (PK) | Unique asset ID from MediaLibrary |
+| `title` | TEXT | Parsed song title |
+| `artist` | TEXT | Parsed artist name |
+| `album` | TEXT | Parsed album name |
+| `artwork` | TEXT | URI to the cached image in FileSystem |
 
-- **Framework:** React Native, Expo, Expo Router (for navigation)
-- **Styling:** TailwindCSS via NativeWind (v4)
-- **State Management:** React Context API (Audio, Genres, Likes, Playlists, Sharing)
-- **Audio Engine:** `expo-audio` / `expo-av`
-- **AI Integration:** Groq API
-- **Local Storage:** `expo-file-system`, `expo-sqlite` (Relational Database)
-- **Legacy Storage:** `@react-native-async-storage/async-storage` (Migrated to SQLite)
+### `genre_map`
+Maps songs to multiple AI-assigned genres.
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `song_id` | TEXT | Foreign key to asset |
+| `genre` | TEXT | Genre name (e.g., "Phonk") |
+| *Primary Key* | `(song_id, genre)` | Ensures unique mappings |
 
-## 4. Directory Structure
+### `playlists` & `playlist_songs`
+Relational tables for user-defined collections.
+- `playlists`: `(id, name, created_at)`
+- `playlist_songs`: `(playlist_id, song_id, filename, uri, duration, extra_json, sort_order)`
 
-```text
-Msick/
-├── app/                  # Expo Router navigation (Tabs Architecture)
-│   ├── (tabs)/           # Main Tab Navigator
-│   │   ├── index/        # Home Stack (Home, Queue)
-│   │   ├── library/      # Library Stack (All Songs, Playlists, Favorites)
-│   │   └── features/     # Features Stack (AI Filter, Genre classification, Sharing)
-├── components/           # Reusable UI components (SongImage, LikeButton, etc.)
-├── context/              # Global state management providers
-├── utils/                # Core business logic and services
-│   ├── database.ts       # Centralized SQLite service
-│   ├── aiFilterService.ts
-│   ├── genreService.ts
-│   ├── metadataUtils.ts
-│   └── networkServer.ts
-└── ...
+---
+
+## 4. AI Engine & Prompt Engineering
+
+Msick uses the **Groq API** (specifically Llama 3.1 8B or 3.3 70B) for zero-shot classification.
+
+### Genre Classification (`genreService.ts`)
+The system prompt enforces a strict musicology perspective:
+- **Constraint:** Must select from a predefined list of 20 genres.
+- **Multi-Label:** Can assign 1-3 tags (e.g., "Bollywood" + "Pop").
+- **Batching:** Songs are batched (size: 75) to minimize RTT and handle large libraries efficiently.
+- **Fallback:** If the API is unreachable, a regex-based `classifyLocally` function scans filenames for keywords.
+
+### Smart Filter (`aiFilterService.ts`)
+Enables semantic search by mapping natural language to file IDs.
+- **System Prompt:** *"You are a music recommendation assistant. Return ONLY a JSON array of IDs that match the user's vibe."*
+- **Validation:** Results are cross-referenced with the local SQLite cache to ensure no hallucinations occur.
+
+---
+
+## 5. Metadata & Artwork Strategy
+
+Extracting artwork from 1000+ files can consume significant memory and storage if stored as Blobs in SQLite.
+- **Extraction:** Performed using a Worklet or background task.
+- **Caching:** Album art is saved as individual files in `FileSystem.cacheDirectory`.
+- **Linking:** Only the local URI is stored in the database.
+- **Optimization:** If a song has no embedded art, it uses a generated aesthetic placeholder based on its genre.
+
+---
+
+## 6. Peer-to-Peer (P2P) Sharing
+
+The sharing module (`utils/networkServer.ts`) uses `react-native-tcp-socket` for high-speed local transfers.
+1. **Discovery:** The sender starts a TCP server and displays a QR code containing their Local IP and Port.
+2. **Handshake:** The receiver scans the QR, connects, and requests the specific file URI.
+3. **Transfer:** Files are sent in chunked buffers to prevent memory overflows.
+4. **Environment:** Optimized for Wi-Fi Direct and local LAN environments.
+
+---
+
+## 7. State Management (Context API)
+
+- **`AudioPlayerContext`:** Controls the `expo-audio` instance, queue state, and playback lifecycle.
+- **`GenreContext`:** Global store for the `genre_map`. Triggers UI refreshes after AI batch processing.
+- **`PlaylistsContext`:** Reactive layer over the SQLite playlist tables.
+
+---
+
+## 8. Development & Performance
+
+### Building the Native Client
+Msick uses several native modules (`expo-sqlite`, `expo-audio`, `react-native-tcp-socket`) that are not available in Expo Go.
+```bash
+npx expo run:android
 ```
 
-## 5. Core Services Deep Dive
+### Performance Targets
+- **Initial Load:** < 2s for 1000 songs.
+- **AI Classification:** ~30s for 500 songs (batched).
+- **Filtering:** < 50ms lookup time via indexed SQLite queries.
 
-### `database.ts`
-The backbone of Msick's persistent storage. Migrated from AsyncStorage to a fully relational SQLite implementation:
-- **Metadata Cache:** Stores extracted track info (Title, Artist, Album, Artwork URI) for instantaneous loading.
-- **Genre Map:** Persists AI-classified genres for all local songs.
-- **Playlists:** Handles relational mapping between playlists and songs with custom sort orders.
-- **Key-Value Store:** A flexible table for simple flags and settings, replacing standalone AsyncStorage keys.
-- **Migration Engine:** Includes a one-time migration script that safely transfers user data from legacy AsyncStorage to the new SQLite schema.
+---
 
-### `genreService.ts`
-Manages the AI-driven categorization of songs. It defines the standard `GENRE_LIST` and UI colors. When categorizing the library:
-- **Data Payload:** The service extracts the `id` and `filename` from up to 100 local songs per batch.
-- **Prompt Construction:** 
-  - **System Prompt:** Instructs the LLM to act as a strict music genre classifier. It clearly outlines the definitions of each genre (e.g., strictly defining "Phonk" as drift phonk/memphis rap vs. general aggressive music, and detailing subgenres for "Indian Music" or "English"). It mandates that the model must respond *only* with raw JSON.
-  - **User Prompt:** A formatted string containing the batched list of songs in the format `[ID] filename.mp3`.
-- **Expected Output:** The LLM is configured with `response_format: { type: 'json_object' }` to return a JSON object mapping IDs to genres: `{"songId": "Genre"}`.
-- **Persistence:** Results are stored in the SQLite `genre_map` table for high-performance retrieval.
-- **Fallback:** Gracefully falls back to `classifyLocally` (a fast keyword matching algorithm) if the network fails.
-
-### `aiFilterService.ts`
-Powers the Smart Filter feature, allowing users to query their music using natural language.
-- **Data Payload:** Extracts `id` and `filename` for all audio assets retrieved via `expo-media-library`.
-- **Prompt Construction:**
-  - **System Prompt:** Instructs the LLM to act as a music recommendation assistant. It enforces rules to return *only* a JSON array containing the IDs of songs whose filenames best match the user's request.
-  - **User Prompt:** Combines the user's request with the formatted list of available local songs.
-- **Expected Output:** Returns a JSON payload containing matched song IDs (e.g., `{"ids": ["id1", "id2"]}`).
-- **Processing:** The service cross-references returned IDs with actual local assets to prevent hallucinations and returns full `MediaLibrary.Asset` objects to the UI.
-
-### `metadataUtils.ts`
-Responsible for reading metadata without blocking the UI thread. It processes file URIs to extract ID3 tags. It saves high-res artwork to the local cache directory using `expo-file-system`, while persisting textual metadata in the SQLite `metadata_cache` table.
-
-### `networkServer.ts`
-A TCP server/client implementation for P2P sharing. It dynamically finds the device's local IP, broadcasts availability, and handles chunked file transfers directly between devices on the LAN.
-
-## 6. State Management (Context API)
-
-- **`AudioPlayerContext`:** Central nervous system of the app. Manages the current queue, active song, playback state, shuffle array, and repeat modes. Interacts directly with the `expo-audio` engine.
-- **`GenreContext`:** Holds the mapped genres for all songs. Ensures the UI across different screens updates when classification completes.
-- **`LikesContext`:** Manages a persistent list of favorited tracks.
-- **`PlaylistsContext`:** Manages user-created custom playlists.
-- **`ShareContext`:** Manages the state of the local TCP server, connected peers, and file transfer progress.
-
-## 7. Setup & Installation
-
-**Prerequisites:**
-- Node.js installed
-- Android SDK / Emulator or physical device (as the app relies on custom native modules, it cannot be run in standard Expo Go).
-
-**Steps:**
-1. Clone the repository.
-2. Run `npm install` to install dependencies.
-3. Create a `.env` file at the root and add your Groq API Key:
-   `EXPO_PUBLIC_GROQ_API_KEY=your_key_here`
-4. Build the development client onto your device/emulator:
-   `npx expo run:android`
-5. Once the build is installed, start the metro bundler:
-   `npm start`
-
-## 8. Known Limitations & Future Work
-
-- **Performance Overheads:** Processing metadata for massive libraries (thousands of songs) on initial load can cause temporary UI blocking. We are exploring moving parsing to a separate native thread or JSI.
-- **P2P Sharing:** The sharing mechanism is functional but requires better UI feedback for transfer failures and cross-platform (iOS) testing.
-- **Waveform Visualization:** Future updates plan to include real-time waveform generation and visualization for the playback screen.
+## 9. Future Roadmap
+- **Waveform Visualization:** Implementing JSI-based audio frequency analysis.
+- **Cross-Platform:** iOS-specific permission handling and native UI refinements.
+- **Local LLM:** Exploring `MLC-LLM` or `Llama.rn` for fully offline AI filtering.
