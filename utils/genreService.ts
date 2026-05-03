@@ -1,63 +1,25 @@
 import { loadGenreMapFromDB, saveGenreMapToDB } from "./database";
 
-// Custom genre categories as requested
-export const GENRE_LIST = [
-  "Phonk",
-  "Party",
-  "Ringtone Worthy",
-  "English",
-  "Indian Music",
-  "Uncategorized",
-] as const;
+// Dynamic Genre System - No predefined list
+export type GenreType = string;
 
-export type GenreType = (typeof GENRE_LIST)[number];
+/**
+ * Generates a consistent, aesthetic HSL color based on a string hash.
+ * This allows dynamic genres to have unique but harmonious colors.
+ */
+export function getGenreStyle(genre: string) {
+  let hash = 0;
+  for (let i = 0; i < genre.length; i++) {
+    hash = genre.charCodeAt(i) + ((hash << 5) - hash);
+  }
 
-// Genre colors for UI display
-export const GENRE_COLORS: Record<
-  GenreType,
-  { bg: string; border: string; icon: string }
-> = {
-  Phonk: {
-    bg: "rgba(239, 68, 68, 0.15)",
-    border: "rgba(239, 68, 68, 0.35)",
-    icon: "#ef4444",
-  },
-  Party: {
-    bg: "rgba(249, 115, 22, 0.15)",
-    border: "rgba(249, 115, 22, 0.35)",
-    icon: "#f97316",
-  },
-  "Ringtone Worthy": {
-    bg: "rgba(236, 72, 153, 0.15)",
-    border: "rgba(236, 72, 153, 0.35)",
-    icon: "#ec4899",
-  },
-  English: {
-    bg: "rgba(59, 130, 246, 0.15)",
-    border: "rgba(59, 130, 246, 0.35)",
-    icon: "#3b82f6",
-  },
-  "Indian Music": {
-    bg: "rgba(168, 85, 247, 0.15)",
-    border: "rgba(168, 85, 247, 0.35)",
-    icon: "#a855f7",
-  },
-  Uncategorized: {
-    bg: "rgba(148, 163, 184, 0.15)",
-    border: "rgba(148, 163, 184, 0.35)",
-    icon: "#94a3b8",
-  },
-};
-
-// Genre icons (FontAwesome icon names)
-export const GENRE_ICONS: Record<GenreType, string> = {
-  Phonk: "bolt",
-  Party: "glass",
-  "Ringtone Worthy": "bell",
-  English: "globe",
-  "Indian Music": "star",
-  Uncategorized: "question-circle",
-};
+  const h = Math.abs(hash % 360);
+  return {
+    bg: `hsla(${h}, 70%, 50%, 0.15)`,
+    border: `hsla(${h}, 70%, 50%, 0.35)`,
+    iconColor: `hsl(${h}, 80%, 65%)`,
+  };
+}
 
 // =========================================================================
 // GROQ API CONFIG
@@ -77,168 +39,50 @@ type SongInput = {
   filename: string;
 };
 
-type GenreMap = Record<string, GenreType>;
+type GenreMap = Record<string, GenreType[]>;
 
 // =========================================================================
 // SMART LOCAL CLASSIFIER (Fallback & Helper)
 // =========================================================================
 
-const GENRE_KEYWORDS: Record<GenreType, string[]> = {
-  Phonk: [
-    "phonk",
-    "cowbell",
-    "memphis rap",
-    "kordhell",
-    "freddie dredd",
-    "dxrk",
-    "ghostface playa",
-    "sxmpra",
-    "gigachad",
-    "lxst cxntury",
-    "hensonn",
-    "brazilian phonk",
-    "drift phonk",
-    "brazilian funk",
-    "funk phonk",
-    "mtg funk",
-  ],
-  Party: [
-    "party",
-    "club",
-    "dance",
-    "dj",
-    "edm",
-    "banger",
-    "remix",
-    "house",
-    "techno",
-    "bass drop",
-    "hype",
-    "lit",
-    "turn up",
-    "night",
-  ],
-  "Ringtone Worthy": [
-    "ringtone",
-    "ton",
-    "alarm",
-    "short",
-    "intro",
-    "hook",
-    "jingle",
-    "theme",
-    "bgm",
-    "ost",
-    "opening",
-    "ending",
-    "instrumental",
-  ],
-  "Indian Music": [
-    "bollywood",
-    "hindi",
-    "punjabi",
-    "desi",
-    "bhangra",
-    "arijit",
-    "atif",
-    "badshah",
-    "neha kakkar",
-    "shreya ghoshal",
-    "kumar sanu",
-    "kishore",
-    "lata",
-    "rafi",
-    "ar rahman",
-    "pritam",
-    "vishal",
-    "tanishk",
-    "jubin",
-    "darshan raval",
-    "b praak",
-    "guru randhawa",
-    "yo yo",
-    "raftaar",
-    "divine",
-    "emiway",
-    "sidhu",
-    "ap dhillon",
-    "diljit",
-    "garry sandhu",
-    "harrdy sandhu",
-    "jassie gill",
-    "kaka",
-    "pawan singh",
-    "khesari",
-    "tamil",
-    "telugu",
-    "kannada",
-    "marathi",
-    "bhojpuri",
-    "gujarati",
-    "sufi",
-    "ghazal",
-    "qawwali",
-    "devotional",
-    "bhajan",
-    "aarti",
-  ],
-  English: [
-    "english",
-    "pop",
-    "rock",
-    "hip hop",
-    "rap",
-    "r&b",
-    "country",
-    "drake",
-    "taylor swift",
-    "ed sheeran",
-    "eminem",
-    "the weeknd",
-    "dua lipa",
-    "justin bieber",
-    "ariana grande",
-    "billie eilish",
-    "post malone",
-    "travis scott",
-    "kanye",
-    "kendrick",
-    "beyonce",
-    "rihanna",
-    "bruno mars",
-    "coldplay",
-    "imagine dragons",
-    "maroon",
-    "one direction",
-    "bts",
-    "blackpink",
-    "charlie puth",
-    "shawn mendes",
-    "lil nas",
-    "doja cat",
-    "sza",
-    "olivia rodrigo",
-    "harry styles",
-  ],
-  Uncategorized: [],
+const GENRE_KEYWORDS: Record<string, string[]> = {
+  "Pop": ["pop", "hits", "top", "mainstream", "billboard", "dua lipa", "justin bieber", "ariana grande", "billie eilish", "shawn mendes", "charlie puth"],
+  "Rock": ["rock", "metal", "grunge", "punk", "indie", "alternative", "coldplay", "imagine dragons", "maroon"],
+  "Hip-Hop": ["hip hop", "trap", "urban", "beats", "lofi", "drake", "travis scott", "kanye", "kendrick", "post malone", "ap dhillon", "divine", "emiway"],
+  "Rap": ["rap", "freestyle", "drill", "lyrical", "eminem", "sidhu", "raftaar"],
+  "EDM & Dance": ["dance", "edm", "house", "techno", "electronic", "dj", "club", "party", "remix", "bass drop"],
+  "Lo-fi & Chill": ["chill", "lofi", "study", "relax", "mellow", "ambient", "the weeknd"],
+  "Phonk": ["phonk", "drift", "cowbell", "sigma", "gigachad", "kordhell", "dxrk", "ghostface playa"],
+  "Bollywood": ["bollywood", "hindi", "indian", "t-series", "arijit", "badshah", "neha kakkar", "shreya ghoshal", "kumar sanu", "kishore", "lata", "rafi", "ar rahman", "pritam", "vishal", "tanishk", "jubin", "darshan raval", "b praak", "guru randhawa", "yo yo", "diljit"],
+  "Classical & Piano": ["classical", "piano", "violin", "orchestra", "symphony", "instrumental", "bgm", "ost"],
+  "Jazz & Blues": ["jazz", "blues", "soul", "funk", "smooth"],
+  "R&B & Soul": ["r&b", "soul", "gospel", "sza", "beyonce", "rihanna", "bruno mars"],
+  "Country": ["country", "folk", "acoustic", "banjo", "taylor swift", "ed sheeran"],
+  "Metal": ["metal", "heavy", "death", "thrash", "doom"],
+  "Reggae & Afrobeat": ["reggae", "afro", "dancehall", "riddim", "lil nas"],
+  "Gaming & OST": ["gaming", "ost", "theme", "background", "bgm", "soundtrack", "ringtone", "alarm", "jingle"],
+  "Acoustic & Folk": ["acoustic", "folk", "unplugged", "guitar", "harry styles", "olivia rodrigo"],
+  "Devotional": ["devotional", "bhajan", "spiritual", "god", "prayer", "mantra", "aarti", "sufi", "qawwali", "ghazal"],
+  "Latin": ["latin", "reggaeton", "salsa", "bachata", "doja cat"],
+  "Retro Hits": ["retro", "old", "80s", "90s", "classic", "vintage", "disco"],
+  "Kids & Nursery": ["kids", "nursery", "baby", "lullaby", "children"]
 };
 
-function classifyLocally(filename: string): GenreType {
+function classifyLocally(filename: string): GenreType[] {
   const name = filename.toLowerCase();
-
-  // Check Indian Music before English since Indian artists may have English words
-  for (const kw of GENRE_KEYWORDS["Indian Music"]) {
-    if (name.includes(kw)) return "Indian Music";
-  }
+  const found: Set<GenreType> = new Set();
 
   for (const [genre, keywords] of Object.entries(GENRE_KEYWORDS)) {
-    if (genre === "Indian Music" || genre === "Uncategorized") continue;
     for (const kw of keywords) {
-      if (name.includes(kw)) return genre as GenreType;
+      if (name.includes(kw)) {
+        found.add(genre as GenreType);
+        break;
+      }
     }
   }
 
-  return "Uncategorized";
+  if (found.size === 0) return ["Pop"];
+  return Array.from(found).slice(0, 3);
 }
 
 // =========================================================================
@@ -262,27 +106,32 @@ export async function saveGenreMap(genreMap: GenreMap): Promise<void> {
   }
 }
 
+const POPULAR_GENRES = [
+  "Pop", "Rock", "Hip-Hop", "Rap", "EDM & Dance", 
+  "Lo-fi & Chill", "Phonk", "Bollywood", "Classical & Piano", "Jazz & Blues",
+  "R&B & Soul", "Country", "Metal", "Reggae & Afrobeat", "Gaming & OST",
+  "Acoustic & Folk", "Devotional", "Latin", "Retro Hits", "Kids & Nursery"
+];
+
 function buildMessages(songs: { id: string; filename: string }[]) {
-  const genreOptions = GENRE_LIST.join(", ");
   const songList = songs.map((s) => `[${s.id}] ${s.filename}`).join("\n");
 
   return [
     {
       role: "system",
-      content: `You are a music genre classifier. You classify songs into exactly one genre based on filename.
-Be strict about Phonk — only classify songs as Phonk if the filename clearly indicates phonk, drift phonk, Brazilian phonk/funk, or known phonk artists. Do NOT classify regular songs as Phonk just because they sound aggressive or have "slowed" or "sped up" in the name.
-Genres: ${genreOptions}
-- Phonk: ONLY actual Phonk music — drift phonk, Brazilian phonk/funk, Memphis phonk, cowbell beats, known phonk artists (Kordhell, Freddie Dredd, DXRK, Ghostface Playa). NOT regular hip-hop, trap, or aggressive music.
-- Party: Dance, club, EDM, high energy, electronic bangers, remix tracks.
-- Ringtone Worthy: Catchy hooks, iconic intros, short tunes, notification sounds, instrumentals, BGM/OST.
-- English: English language songs — pop, rock, hip hop, rap, R&B, country, alternative, indie, etc.
-- Indian Music: Bollywood, Hindi, Punjabi, Tamil, Telugu, Kannada, Marathi, Bhojpuri songs, desi hip-hop, bhangra, Sufi, devotional, ghazals.
-- Uncategorized: Doesn't fit above categories, unknown, recordings, or ambiguous.
-Respond ONLY with raw JSON: {"songId": "Genre"}`,
+      content: `You are a music librarian. For each song provided, assign 1-3 tags strictly from the following list of 20 popular genres:
+${POPULAR_GENRES.join(", ")}.
+
+Rules:
+1. ONLY use tags from the provided list.
+2. If a song fits multiple (e.g. a Bollywood Pop song), assign both.
+3. Be as accurate as possible based on the filename.
+
+Respond ONLY with raw JSON: {"songId": ["Tag1", "Tag2"]}`,
     },
     {
       role: "user",
-      content: `Classify these songs:\n${songList}`,
+      content: `Analyze these songs and map them to the 20 genres:\n${songList}`,
     },
   ];
 }
@@ -327,12 +176,18 @@ async function classifyBatch(
     const textContent = data?.choices?.[0]?.message?.content || "";
 
     try {
-      const result: GenreMap = JSON.parse(textContent);
+      const result: Record<string, string | string[]> = JSON.parse(textContent);
       const validatedResult: GenreMap = {};
       for (const song of songs) {
-        const genre = result[song.id];
-        if (genre && GENRE_LIST.includes(genre as GenreType)) {
-          validatedResult[song.id] = genre as GenreType;
+        let tags = result[song.id];
+
+        // Normalize to array
+        if (typeof tags === "string") tags = [tags];
+
+        if (Array.isArray(tags) && tags.length > 0) {
+          validatedResult[song.id] = tags
+            .map((t) => String(t).trim())
+            .filter(Boolean);
         } else {
           validatedResult[song.id] = classifyLocally(song.filename);
         }

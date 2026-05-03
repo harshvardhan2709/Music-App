@@ -10,6 +10,15 @@ const GROQ_API_KEY =
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.1-8b-instant";
 
+import { getSongIdsByGenre } from "./database";
+
+const CORE_20_GENRES = [
+  "Pop", "Rock", "Hip-Hop", "Rap", "EDM & Dance", 
+  "Lo-fi & Chill", "Phonk", "Bollywood", "Classical & Piano", "Jazz & Blues",
+  "R&B & Soul", "Country", "Metal", "Reggae & Afrobeat", "Gaming & OST",
+  "Acoustic & Folk", "Devotional", "Latin", "Retro Hits", "Kids & Nursery"
+];
+
 const BATCH_SIZE = 75;
 const MAX_RETRIES = 4;
 const BASE_RETRY_DELAY_MS = 5000;
@@ -18,6 +27,52 @@ type SongInput = {
   id: string;
   filename: string;
 };
+
+/**
+ * Asks the AI which genres from our Core 20 list are relevant to the user's prompt.
+ */
+async function detectGenresFromPrompt(userPrompt: string): Promise<string[]> {
+  const messages = [
+    {
+      role: "system",
+      content: `You are a music classifier. Based on the user's request, identify which of these 20 genres are relevant.
+Genres: ${CORE_20_GENRES.join(", ")}.
+
+Rules:
+- Return ONLY a JSON object with a key "genres" containing an array: {"genres": ["Pop", "Rock"]}
+- If no genres match, return an empty array: {"genres": []}
+- Be inclusive — if a prompt like "sad hits" matches "Pop" and "Acoustic", include both.`,
+    },
+    {
+      role: "user",
+      content: `User Request: "${userPrompt}"`,
+    },
+  ];
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages,
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json();
+    const parsed = JSON.parse(data?.choices?.[0]?.message?.content || "{}");
+    return Array.isArray(parsed.genres) ? parsed.genres : [];
+  } catch (e) {
+    console.error("[AI Filter] Genre detection failed:", e);
+    return [];
+  }
+}
 
 /**
  * Sends a batch of songs + user prompt to the AI and returns matching song IDs.
@@ -33,6 +88,8 @@ async function filterBatch(
     {
       role: "system",
       content: `You are a music recommendation assistant. The user will give you a request describing what kind of songs they want. You will be given a list of songs (with IDs and filenames). Your job is to pick the songs that best match the user's request based on the filename.
+
+Core Genres to prioritize: ${CORE_20_GENRES.join(", ")}.
 
 Rules:
 - Return ONLY a JSON object with a single key "ids" containing an array of matching song IDs: {"ids": ["id1", "id2"]}
@@ -134,31 +191,62 @@ export async function aiSmartFilter(
     first: 500,
   });
 
-  const allSongs: SongInput[] = media.assets.map((a) => ({
-    id: a.id,
-    filename: a.filename,
-  }));
+  const allSongs: SongInput[] = media.assets
+    .filter((a) => a.duration >= 35)
+    .map((a) => ({
+      id: a.id,
+      filename: a.filename,
+    }));
 
   if (allSongs.length === 0) {
     throw new Error("No songs found on device");
   }
 
-  // Split into batches
-  const batches: SongInput[][] = [];
-  for (let i = 0; i < allSongs.length; i += BATCH_SIZE) {
-    batches.push(allSongs.slice(i, i + BATCH_SIZE));
-  }
-
   const matchedIds: string[] = [];
 
+  // --- STAGE 1: Detect Relevant Genres via AI ---
+  onProgress?.("Identifying relevant categories...");
+  const detectedGenres = await detectGenresFromPrompt(userPrompt);
+  console.log(`[AI Filter] Detected genres for prompt "${userPrompt}":`, detectedGenres);
+
+  let songsToScan: SongInput[] = [];
+
+  if (detectedGenres.length > 0) {
+    onProgress?.(`Filtering library for ${detectedGenres.join(", ")}...`);
+    const indexedIds = new Set<string>();
+    for (const genre of detectedGenres) {
+      const ids = await getSongIdsByGenre(genre);
+      ids.forEach(id => indexedIds.add(id));
+    }
+    
+    // Only scan songs that match these genres
+    songsToScan = allSongs.filter(s => indexedIds.has(s.id));
+    console.log(`[AI Filter] SQLite pre-filtered library from ${allSongs.length} to ${songsToScan.length} songs.`);
+  } else {
+    // Fallback: If no genre detected, we have to scan everything (or we can be strict)
+    console.log("[AI Filter] No specific genre detected. Scanning full library as fallback.");
+    songsToScan = allSongs;
+  }
+
+  if (songsToScan.length === 0) {
+    onProgress?.("No songs found in matching categories.");
+    return [];
+  }
+
+  // --- STAGE 2: Targeted AI Deep Scan ---
+  // Split the pre-filtered songs into batches
+  const batches: SongInput[][] = [];
+  for (let i = 0; i < songsToScan.length; i += BATCH_SIZE) {
+    batches.push(songsToScan.slice(i, i + BATCH_SIZE));
+  }
+
   for (let i = 0; i < batches.length; i++) {
-    onProgress?.(`Analyzing batch ${i + 1}/${batches.length}...`);
+    onProgress?.(`Analyzing relevant songs (${i + 1}/${batches.length})...`);
     const batchResult = await filterBatch(batches[i], userPrompt);
     matchedIds.push(...batchResult);
 
-    // Rate limit buffer between batches
     if (i < batches.length - 1) {
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 1500)); // Slightly faster buffer for small batches
     }
   }
 

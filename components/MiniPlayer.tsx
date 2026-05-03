@@ -2,6 +2,7 @@ import { Image as ExpoImage } from "expo-image";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 import { useAudioPlayer } from "../context/AudioPlayerContext";
 import FullScreenPlayer from "./FullScreenPlayer";
@@ -12,6 +13,7 @@ export default function MiniPlayer() {
         isPlaying,
         togglePlayPause,
     } = useAudioPlayer();
+    const router = useRouter();
     const [showFullPlayer, setShowFullPlayer] = useState(false);
 
     if (!currentSong) return null;
@@ -87,7 +89,6 @@ export default function MiniPlayer() {
                             </Text>
                         </View>
 
-                        {/* Play / Pause */}
                         <TouchableOpacity
                             onPress={(e) => {
                                 e.stopPropagation();
@@ -108,6 +109,25 @@ export default function MiniPlayer() {
                                 color="#c084fc"
                                 style={{ marginLeft: isPlaying ? 0 : 2 }}
                             />
+                        </TouchableOpacity>
+
+                        {/* Queue Button */}
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                router.push("/current-queue" as any);
+                            }}
+                            style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 18,
+                                backgroundColor: "rgba(127, 25, 230, 0.25)",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                marginLeft: 8,
+                            }}
+                        >
+                            <FontAwesome name="list-ul" size={16} color="#c084fc" />
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>

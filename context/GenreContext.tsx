@@ -2,14 +2,13 @@ import * as MediaLibrary from 'expo-media-library';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
     type GenreType,
-    GENRE_LIST,
     classifyAllSongs,
     loadGenreMap,
 } from '../utils/genreService';
 import { getKV, setKV, removeKV, clearGenreMapDB } from '../utils/database';
 
 
-type GenreMap = Record<string, GenreType>;
+type GenreMap = Record<string, GenreType[]>;
 
 type ClassificationStatus = 'idle' | 'loading_songs' | 'classifying' | 'done' | 'error';
 
@@ -20,7 +19,7 @@ type GenreContextType = {
     progressMessage: string;
     errorMessage: string;
     startClassification: () => Promise<void>;
-    getGenre: (songId: string) => GenreType | undefined;
+    getGenre: (songId: string) => GenreType[];
     getSongsByGenre: (genre: GenreType) => string[]; // returns song IDs
     genreCounts: Record<GenreType, number>;
     hasClassified: boolean;
@@ -34,7 +33,7 @@ const GenreContext = createContext<GenreContextType>({
     progressMessage: '',
     errorMessage: '',
     startClassification: async () => { },
-    getGenre: () => undefined,
+    getGenre: () => [],
     getSongsByGenre: () => [],
     genreCounts: {} as Record<GenreType, number>,
     hasClassified: false,
@@ -67,24 +66,27 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
         })();
     }, []);
 
-    const getGenre = useCallback((songId: string): GenreType | undefined => {
-        return genreMap[songId];
+    const getGenre = useCallback((songId: string): GenreType[] => {
+        return genreMap[songId] || [];
     }, [genreMap]);
 
     const getSongsByGenre = useCallback((genre: GenreType): string[] => {
         return Object.entries(genreMap)
-            .filter(([_, g]) => g === genre)
+            .filter(([_, genres]) => genres.includes(genre))
             .map(([id]) => id);
     }, [genreMap]);
 
     const genreCounts = React.useMemo(() => {
         const counts = {} as Record<GenreType, number>;
-        GENRE_LIST.forEach(g => { counts[g] = 0; });
-        Object.values(genreMap).forEach(genre => {
-            if (counts[genre] !== undefined) {
+        
+        // Discover all unique genres and count them
+        Object.values(genreMap).forEach(genres => {
+            genres.forEach(genre => {
+                if (!counts[genre]) counts[genre] = 0;
                 counts[genre]++;
-            }
+            });
         });
+        
         return counts;
     }, [genreMap]);
 
@@ -129,12 +131,12 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
                 first: 500,
             });
 
-            const allSongs = media.assets.map(a => ({
-                id: a.id,
-                filename: a.filename,
-            }));
-
-            const songs = allSongs;
+            const songs = media.assets
+                .filter(a => a.duration >= 35)
+                .map(a => ({
+                    id: a.id,
+                    filename: a.filename,
+                }));
 
             if (songs.length === 0) {
                 setErrorMessage('No songs found on device');
@@ -155,7 +157,7 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
 
             setGenreMap(result);
 
-            const activeGenreCount = new Set(Object.values(result)).size;
+            const activeGenreCount = new Set(Object.values(result).flat()).size;
 
             setProgress(100);
             setProgressMessage(`Done! Classified ${songs.length} songs into ${activeGenreCount} genres.`);

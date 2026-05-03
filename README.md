@@ -4,73 +4,81 @@
   <img src="assets/demo1.jpeg" alt="Home Screen" width="250" />
   <img src="assets/demo2.jpeg" alt="Library Screen" width="250" />
   <img src="assets/demo3.jpeg" alt="Features Screen" width="250" />
-  <img src="assets/demo4.jpeg" alt="Genre loading Models
-  " width="250" />
-  <img src="assets/demo5.jpeg" alt="Genre loading Models
-  " width="250" />
+  <img src="assets/demo4.jpeg" alt="Genre Classification" width="250" />
+  <img src="assets/demo5.jpeg" alt="Smart Filter" width="250" />
   <img src="assets/demo6.jpeg" alt="Genre Screen" width="250" />
-  <img src="assets/demo7.jpeg" alt="Other Models" width="250" />
+  <img src="assets/demo7.jpeg" alt="AI Models" width="250" />
 </p>
 
-NOTE: THIS APP IS NOT FULLY OPTIMIZED SO IT MAY SHOW DELAYS/LAGS.
+> [!NOTE]
+> Msick is currently in development. While functional, it is undergoing continuous performance optimizations for large music libraries.
 
-Msick is a React Native music application built with Expo that enhances local file management with advanced AI capabilities. It focuses on beautifully playing and intelligently organizing your local music library via custom AI-driven categorization, metadata extraction, and robust caching.
+Msick is a high-performance, local-first music application built with **React Native** and **Expo**. It transforms your local music library into an intelligent, AI-powered experience with natural language searching, automated genre classification, and robust relational storage.
 
-## Features
+## ✨ Core Features
 
-- **Local Music Playback:** Seamlessly play, manage, and explore local music tracks directly stored on your device.
-- **AI-Driven Genre Classification:** Automatically classifies and categorizes songs into custom genres (e.g., Phonk, Chill, Party, Funk) by intelligently analyzing filenames using the Groq API (powered by the Llama 3.3 70B model). Includes a fast, local keyword-based fallback mechanism.
-- **Rich Metadata & Album Art Extraction:** Accurately retrieves and elegantly displays embedded artwork and track metadata using `music-metadata-browser` with performance-optimized lazy loading.
-- **Efficient Artwork Caching:** Employs a robust FileSystem caching strategy to store artwork locally, preventing database size limits (such as `SQLITE_FULL` errors) and accelerating load times across screens.
-- **Modern Interface:** Enjoy a cohesive design across the Home screen, a dynamic MiniPlayer, an immersive FullScreenPlayer, and a smooth SongSelector, styled efficiently with TailwindCSS (NativeWind).
-- **Peer-to-Peer (P2P) Sharing _(Work-in-Progress)_:** An upcoming capability designed to allow seamless, local music sharing between peers.
+- **💿 Local Music Powerhouse:** High-fidelity playback of local audio files with full support for background audio, lock screen controls, and dynamic queue management.
+- **🤖 AI-Driven Genre Classification:** Automatically organizes your library into custom genres (e.g., Phonk, Chill, Party, Funk) using the **Groq API (Llama 3.3 70B)**. Includes an instant, offline keyword-based fallback.
+- **🔍 AI Smart Filter:** Search your library using natural language. Instead of just searching by filename, ask for "upbeat workout tracks" or "relaxing evening vibes," and the AI will build a custom playlist from your local files.
+- **🗄️ Relational SQLite Storage:** Migrated from AsyncStorage to a professional **SQLite** architecture for lightning-fast lookups, complex relationships (playlists, genres), and rock-solid data persistence.
+- **🖼️ Smart Metadata & Artwork Caching:** Extracts ID3 tags and album art using `music-metadata-browser`. Employs a unique **FileSystem caching** strategy to store high-res artwork locally without bloating the database.
+- **🎨 Modern UI/UX:** A beautiful, responsive interface designed with **TailwindCSS (NativeWind v4)** and **React Native Reanimated**, featuring smooth transitions, glassmorphism, and a neon-purple aesthetic.
+- **🌐 Peer-to-Peer (P2P) Sharing (WIP):** Share music directly with peers on your local network using an integrated TCP socket server.
 
-## Tech Stack
+## 🛠️ Technology Stack
 
-- **Framework:** React Native & Expo
-- **AI Integration:** Groq API / Llama 3.3 70B
-- **Styling:** TailwindCSS & NativeWind
-- **Metadata Parsing:** `music-metadata-browser`
+- **Core:** React Native & Expo (Development Build)
+- **Navigation:** Expo Router (Tabs Architecture)
+- **Database:** SQLite (expo-sqlite)
+- **AI Engine:** Groq API / Llama 3.3 70B & 8B
+- **Styling:** TailwindCSS (NativeWind v4)
+- **Animations:** React Native Reanimated
+- **Metadata:** music-metadata-browser
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-Ensure you have [Node.js](https://nodejs.org/) installed along with `npm` or `yarn`. Because this project uses custom native modules, it runs as an **Expo Development Build** instead of the standard Expo Go app.
-You will need a configured Android Emulator (via Android Studio) or a physical Android device connected via USB with USB debugging enabled.
+Msick uses custom native modules for advanced audio and networking. Therefore, it runs as an **Expo Development Build**.
+
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- Android Studio (for Emulator) or a physical Android device.
+- Groq API Key (Sign up at [console.groq.com](https://console.groq.com/))
 
 ### Installation
 
-1. Clone the repository and navigate to the project directory:
-
+1. **Clone & Navigate:**
    ```bash
    git clone <repository-url>
    cd Msick
    ```
 
-2. Install the necessary dependencies:
-
+2. **Install Dependencies:**
    ```bash
    npm install
    ```
 
-3. Environment Variables:
-   Make sure you define proper environment variables in a `.env` file at the root. You will need your Groq API key here to enable AI functionalities.
+3. **Configure Environment:**
+   Create a `.env` file in the root directory:
+   ```env
+   EXPO_PUBLIC_GROQ_API_KEY=your_actual_key_here
+   ```
 
-### Running the Application
+### Running the App
 
-Since this project requires custom native code, you must build the native app and run the development server via:
+Since the app uses custom native code, you must build the development client first:
 
 ```bash
+# Build and run on Android
 npx expo run:android
 ```
 
-_(This command compiles the custom native code for the music modules and installs the Development Build directly onto your Android emulator or connected device)._
-
-Once the native app is built and installed on your device, for future sessions you can simply start the Metro bundler:
+Once the initial build is installed on your device, you can start the development server for future sessions:
 
 ```bash
 npm start
 ```
 
-From the Metro terminal interface, you can press `a` to open the installed development build on your connected device/emulator.
+## 📜 Documentation
+
+For a deeper dive into the technical architecture, AI prompt engineering, and database schema, please refer to the [DOCUMENTATION.md](./DOCUMENTATION.md).

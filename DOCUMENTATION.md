@@ -33,40 +33,38 @@
 - **State Management:** React Context API (Audio, Genres, Likes, Playlists, Sharing)
 - **Audio Engine:** `expo-audio` / `expo-av`
 - **AI Integration:** Groq API
-- **Local Storage:** `expo-file-system`, `@react-native-async-storage/async-storage`
+- **Local Storage:** `expo-file-system`, `expo-sqlite` (Relational Database)
+- **Legacy Storage:** `@react-native-async-storage/async-storage` (Migrated to SQLite)
 
 ## 4. Directory Structure
 
 ```text
 Msick/
-├── app/                  # Expo Router navigation screens
-│   ├── index/            # Home screen
-│   ├── library/          # Local library management and listing
-│   ├── features/         # Features overview screen
-│   ├── queue/            # Current playback queue
-│   ├── genre/            # Genre-specific song listings
-│   ├── smart-filter/     # Natural language query interface
-│   └── share/            # P2P sharing interfaces
-├── components/           # Reusable UI components
-│   ├── FullScreenPlayer.tsx
-│   ├── MiniPlayer.tsx
-│   ├── SongSelector.tsx
-│   └── ...
+├── app/                  # Expo Router navigation (Tabs Architecture)
+│   ├── (tabs)/           # Main Tab Navigator
+│   │   ├── index/        # Home Stack (Home, Queue)
+│   │   ├── library/      # Library Stack (All Songs, Playlists, Favorites)
+│   │   └── features/     # Features Stack (AI Filter, Genre classification, Sharing)
+├── components/           # Reusable UI components (SongImage, LikeButton, etc.)
 ├── context/              # Global state management providers
-│   ├── AudioPlayerContext.tsx
-│   ├── GenreContext.tsx
-│   └── ...
 ├── utils/                # Core business logic and services
+│   ├── database.ts       # Centralized SQLite service
 │   ├── aiFilterService.ts
-│   ├── fileUtils.ts
 │   ├── genreService.ts
 │   ├── metadataUtils.ts
 │   └── networkServer.ts
-├── assets/               # Static images and icons
-└── ...                   # Config files (package.json, tailwind.config.js, etc.)
+└── ...
 ```
 
 ## 5. Core Services Deep Dive
+
+### `database.ts`
+The backbone of Msick's persistent storage. Migrated from AsyncStorage to a fully relational SQLite implementation:
+- **Metadata Cache:** Stores extracted track info (Title, Artist, Album, Artwork URI) for instantaneous loading.
+- **Genre Map:** Persists AI-classified genres for all local songs.
+- **Playlists:** Handles relational mapping between playlists and songs with custom sort orders.
+- **Key-Value Store:** A flexible table for simple flags and settings, replacing standalone AsyncStorage keys.
+- **Migration Engine:** Includes a one-time migration script that safely transfers user data from legacy AsyncStorage to the new SQLite schema.
 
 ### `genreService.ts`
 Manages the AI-driven categorization of songs. It defines the standard `GENRE_LIST` and UI colors. When categorizing the library:
@@ -75,19 +73,20 @@ Manages the AI-driven categorization of songs. It defines the standard `GENRE_LI
   - **System Prompt:** Instructs the LLM to act as a strict music genre classifier. It clearly outlines the definitions of each genre (e.g., strictly defining "Phonk" as drift phonk/memphis rap vs. general aggressive music, and detailing subgenres for "Indian Music" or "English"). It mandates that the model must respond *only* with raw JSON.
   - **User Prompt:** A formatted string containing the batched list of songs in the format `[ID] filename.mp3`.
 - **Expected Output:** The LLM is configured with `response_format: { type: 'json_object' }` to return a JSON object mapping IDs to genres: `{"songId": "Genre"}`.
-- **Fallback:** Gracefully falls back to `classifyLocally` (a fast keyword matching algorithm) if the network fails, rate limits are hit, or the JSON parsing fails. Results are persisted via AsyncStorage.
+- **Persistence:** Results are stored in the SQLite `genre_map` table for high-performance retrieval.
+- **Fallback:** Gracefully falls back to `classifyLocally` (a fast keyword matching algorithm) if the network fails.
 
 ### `aiFilterService.ts`
 Powers the Smart Filter feature, allowing users to query their music using natural language.
 - **Data Payload:** Extracts `id` and `filename` for all audio assets retrieved via `expo-media-library`.
 - **Prompt Construction:**
-  - **System Prompt:** Instructs the LLM to act as a music recommendation assistant. It enforces rules to return *only* a JSON array containing the IDs of songs whose filenames best match the user's request. It explicitly handles empty states (returning `{"ids": []}` if nothing matches).
-  - **User Prompt:** Combines the user's raw text request (e.g., "Give me some chill lofi beats") with the formatted list of all available local songs.
-- **Expected Output:** The LLM processes the request and returns a JSON payload containing the matched song IDs (e.g., `{"ids": ["id1", "id2"]}`).
-- **Processing:** The service parses the JSON, cross-references the returned IDs with the actual local asset list to prevent hallucinations, and hands the full `MediaLibrary.Asset` objects back to the UI to populate the playlist.
+  - **System Prompt:** Instructs the LLM to act as a music recommendation assistant. It enforces rules to return *only* a JSON array containing the IDs of songs whose filenames best match the user's request.
+  - **User Prompt:** Combines the user's request with the formatted list of available local songs.
+- **Expected Output:** Returns a JSON payload containing matched song IDs (e.g., `{"ids": ["id1", "id2"]}`).
+- **Processing:** The service cross-references returned IDs with actual local assets to prevent hallucinations and returns full `MediaLibrary.Asset` objects to the UI.
 
 ### `metadataUtils.ts`
-Responsible for reading metadata without blocking the UI thread. It processes file URIs to extract ID3 tags. Crucially, it converts heavy embedded images into Base64 or writes them directly to the local cache directory using `expo-file-system`, significantly reducing memory overhead.
+Responsible for reading metadata without blocking the UI thread. It processes file URIs to extract ID3 tags. It saves high-res artwork to the local cache directory using `expo-file-system`, while persisting textual metadata in the SQLite `metadata_cache` table.
 
 ### `networkServer.ts`
 A TCP server/client implementation for P2P sharing. It dynamically finds the device's local IP, broadcasts availability, and handles chunked file transfers directly between devices on the LAN.
@@ -118,6 +117,6 @@ A TCP server/client implementation for P2P sharing. It dynamically finds the dev
 
 ## 8. Known Limitations & Future Work
 
-- **Performance Overheads:** Processing metadata for massive libraries (thousands of songs) on initial load can cause temporary UI blocking. Moving this completely to a background worker thread is planned.
+- **Performance Overheads:** Processing metadata for massive libraries (thousands of songs) on initial load can cause temporary UI blocking. We are exploring moving parsing to a separate native thread or JSI.
 - **P2P Sharing:** The sharing mechanism is functional but requires better UI feedback for transfer failures and cross-platform (iOS) testing.
-- **Database Scaling:** Transitioning from `AsyncStorage` to a robust SQLite implementation for purely relational metadata (playlists, play counts) while keeping artwork in the FileSystem cache.
+- **Waveform Visualization:** Future updates plan to include real-time waveform generation and visualization for the playback screen.

@@ -22,13 +22,33 @@ import SongImage from "../../../components/SongImage";
 import AddToPlaylistModal from "../../../components/AddToPlaylistModal";
 import LikeButton from "../../../components/LikeButton";
 import { useAudioPlayer } from "../../../context/AudioPlayerContext";
-import { preloadMetadataCache } from "../../../utils/metadataUtils";
+import { preloadMetadataCache, startBackgroundMetadataScan, getMetadataStats } from "../../../utils/metadataUtils";
 
 type SongWithDuration = MediaLibrary.Asset & {
   realDuration?: number;
 };
 
 const ITEM_HEIGHT = 68; // 44px content + 12*2 padding + 6 marginBottom ≈ 68
+
+const SortButton = ({ label, type, current, onSelect }: { label: string, type: any, current: string, onSelect: any }) => (
+  <TouchableOpacity
+    onPress={() => onSelect(type)}
+    style={{
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      backgroundColor: current === type ? "rgba(127, 25, 230, 0.3)" : "transparent",
+    }}
+  >
+    <Text style={{
+      fontSize: 12,
+      fontWeight: current === type ? "700" : "500",
+      color: current === type ? "#c084fc" : "rgba(255, 255, 255, 0.4)",
+    }}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
 
 const SongListItem = React.memo(({ item, isCurrent }: { item: SongWithDuration, isCurrent: boolean }) => {
   return (
@@ -94,11 +114,12 @@ export default function MusicPlayerScreen() {
   const [loading, setLoading] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [search, setSearch] = useState("");
-  const [sortType, setSortType] = useState<"name" | "duration">("name");
+  const [sortType, setSortType] = useState<"name" | "duration" | "newest" | "oldest">("newest");
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const { play, currentSong } = useAudioPlayer();
   const [addToPlaylistVisible, setAddToPlaylistVisible] = useState(false);
   const [songToAdd, setSongToAdd] = useState<SongWithDuration | null>(null);
+  const [scanStats, setScanStats] = useState({ cached: 0, total: 0, isScanning: false });
 
   const currentSongId = currentSong?.id;
 
@@ -109,6 +130,18 @@ export default function MusicPlayerScreen() {
 
   useEffect(() => {
     loadSongs();
+  }, []);
+
+  // Update scan stats periodically
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const stats = getMetadataStats();
+      setScanStats(stats);
+      if (!stats.isScanning && stats.cached >= stats.total && stats.total > 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const loadSongs = async () => {
@@ -128,15 +161,19 @@ export default function MusicPlayerScreen() {
       first: 500,
     });
 
-    // Use duration directly from getAssetsAsync (already available)
-    // No need to call getAssetInfoAsync for each song individually
-    const result: SongWithDuration[] = media.assets.map(asset => ({
-      ...asset,
-      realDuration: asset.duration ? asset.duration * 1000 : undefined,
-    }));
+    // Filter out short clips (e.g. notifications, ringtones) less than 35s
+    const result: SongWithDuration[] = media.assets
+      .filter(asset => asset.duration >= 35)
+      .map(asset => ({
+        ...asset,
+        realDuration: asset.duration ? asset.duration * 1000 : undefined,
+      }));
 
     setSongs(result);
     setLoading(false);
+    
+    // Start scanning remaining metadata in background
+    startBackgroundMetadataScan(result.map(a => ({ id: a.id, uri: a.uri }))).catch(() => {});
   };
 
   // Memoize filtered + sorted list to avoid recomputation on every render
@@ -144,11 +181,13 @@ export default function MusicPlayerScreen() {
     const filtered = songs.filter((song) =>
       song.filename.toLowerCase().includes(search.toLowerCase()),
     );
-    return [...filtered].sort((a, b) =>
-      sortType === "name"
-        ? a.filename.localeCompare(b.filename)
-        : (b.realDuration ?? 0) - (a.realDuration ?? 0),
-    );
+    return [...filtered].sort((a, b) => {
+      if (sortType === "name") return a.filename.localeCompare(b.filename);
+      if (sortType === "duration") return (b.realDuration ?? 0) - (a.realDuration ?? 0);
+      if (sortType === "newest") return (b.modificationTime ?? 0) - (a.modificationTime ?? 0);
+      if (sortType === "oldest") return (a.modificationTime ?? 0) - (b.modificationTime ?? 0);
+      return 0;
+    });
   }, [songs, search, sortType]);
 
   const handlePlay = useCallback((item: SongWithDuration) => {
@@ -270,6 +309,35 @@ export default function MusicPlayerScreen() {
         </View>
       </View>
 
+      {/* Scanning Progress */}
+      {scanStats.isScanning && scanStats.total > 0 && (
+        <Animated.View 
+          entering={FadeInDown.duration(400)}
+          exiting={FadeOutDown.duration(400)}
+          style={{ paddingHorizontal: 20, marginBottom: 12 }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            backgroundColor: 'rgba(127, 25, 230, 0.08)',
+            borderWidth: 1,
+            borderColor: 'rgba(127, 25, 230, 0.2)',
+            borderRadius: 16,
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+          }}>
+            <ActivityIndicator size="small" color="#c084fc" />
+            <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 13, flex: 1 }}>
+              Optimizing library images...
+            </Text>
+            <Text style={{ color: '#c084fc', fontWeight: '700', fontSize: 13 }}>
+              {scanStats.cached} / {scanStats.total}
+            </Text>
+          </View>
+        </Animated.View>
+      )}
+
       {/* Song List */}
       <FlatList
         data={sorted}
@@ -307,85 +375,16 @@ export default function MusicPlayerScreen() {
             zIndex: 50,
           }}
         >
-          <Text className="font-bold ml-4 text-neon-purple">Sort by:</Text>
-          <View className="flex-row gap-4 mr-4">
-            <TouchableOpacity
-              onPress={() => {
-                setSortType("name");
-                setSortModalVisible(false);
-              }}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 6,
-                borderRadius: 20,
-                backgroundColor:
-                  sortType === "name"
-                    ? "rgba(127, 25, 230, 0.3)"
-                    : "transparent",
-              }}
-            >
-              <Text
-                style={{
-                  fontWeight: sortType === "name" ? "700" : "400",
-                  color:
-                    sortType === "name"
-                      ? "#c084fc"
-                      : "rgba(255, 255, 255, 0.5)",
-                }}
-              >
-                Name
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setSortType("duration");
-                setSortModalVisible(false);
-              }}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 6,
-                borderRadius: 20,
-                backgroundColor:
-                  sortType === "duration"
-                    ? "rgba(127, 25, 230, 0.3)"
-                    : "transparent",
-              }}
-            >
-              <Text
-                style={{
-                  fontWeight: sortType === "duration" ? "700" : "400",
-                  color:
-                    sortType === "duration"
-                      ? "#c084fc"
-                      : "rgba(255, 255, 255, 0.5)",
-                }}
-              >
-                Duration
-              </Text>
-            </TouchableOpacity>
+          <Text className="font-bold ml-4 text-neon-purple">Sort:</Text>
+          <View className="flex-row gap-2 mr-4">
+            <SortButton label="Name" type="name" current={sortType} onSelect={setSortType} />
+            <SortButton label="Newest" type="newest" current={sortType} onSelect={setSortType} />
+            <SortButton label="Oldest" type="oldest" current={sortType} onSelect={setSortType} />
           </View>
         </Animated.View>
       )}
-      {/* Floating Queue Button */}
-      <TouchableOpacity
-        onPress={() => router.push("/current-queue" as any)}
-        style={{
-          position: "absolute",
-          right: 20,
-          bottom: currentSong ? 150 : 80,
-          width: 52,
-          height: 52,
-          borderRadius: 26,
-          backgroundColor: "rgba(127, 25, 230, 0.3)",
-          borderWidth: 1,
-          borderColor: "rgba(127, 25, 230, 0.5)",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 40,
-        }}
-      >
-        <FontAwesome name="list-ul" size={20} color="#c084fc" />
-      </TouchableOpacity>
+      {/* Floating Buttons Spacer */}
+      <View style={{ height: currentSong ? 100 : 20 }} />
 
       <AddToPlaylistModal
         visible={addToPlaylistVisible}

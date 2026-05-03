@@ -49,8 +49,9 @@ async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 
   await db.execAsync(`
         CREATE TABLE IF NOT EXISTS genre_map (
-            song_id TEXT PRIMARY KEY NOT NULL,
-            genre TEXT NOT NULL
+            song_id TEXT NOT NULL,
+            genre TEXT NOT NULL,
+            PRIMARY KEY (song_id, genre)
         )
     `);
 
@@ -125,6 +126,7 @@ async function migrateFromAsyncStorage(
         if (entries.length > 0) {
           await db.withTransactionAsync(async () => {
             for (const [songId, genre] of entries) {
+              // Migration from single-genre string to multi-genre storage
               await db.runAsync(
                 "INSERT OR REPLACE INTO genre_map (song_id, genre) VALUES (?, ?)",
                 [songId, genre],
@@ -299,30 +301,39 @@ export async function clearMetadataCacheDB(): Promise<void> {
 // GENRE MAP OPERATIONS
 // =========================================================================
 
-export async function loadGenreMapFromDB(): Promise<Record<string, string>> {
+export async function loadGenreMapFromDB(): Promise<Record<string, string[]>> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<{ song_id: string; genre: string }>(
     "SELECT song_id, genre FROM genre_map",
   );
-  const map: Record<string, string> = {};
+  const map: Record<string, string[]> = {};
   for (const row of rows) {
-    map[row.song_id] = row.genre;
+    if (!map[row.song_id]) map[row.song_id] = [];
+    map[row.song_id].push(row.genre);
   }
   return map;
 }
 
 export async function saveGenreMapToDB(
-  genreMap: Record<string, string>,
+  genreMap: Record<string, string[]>,
 ): Promise<void> {
   const db = await getDatabase();
   const entries = Object.entries(genreMap);
   if (entries.length === 0) return;
 
-  // Batch insert — 50 rows per statement to minimize JS↔Native bridge crossings
+  // Flatten the map for batch insertion: [song_id, genre] pairs
+  const flattened: [string, string][] = [];
+  for (const [songId, genres] of entries) {
+    for (const genre of genres) {
+      flattened.push([songId, genre]);
+    }
+  }
+
+  // Batch insert — 50 rows per statement
   const CHUNK_SIZE = 50;
   await db.withTransactionAsync(async () => {
-    for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
-      const chunk = entries.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < flattened.length; i += CHUNK_SIZE) {
+      const chunk = flattened.slice(i, i + CHUNK_SIZE);
       const placeholders = chunk.map(() => "(?, ?)").join(", ");
       const params = chunk.flatMap(([songId, genre]) => [songId, genre]);
       await db.runAsync(
@@ -336,6 +347,37 @@ export async function saveGenreMapToDB(
 export async function clearGenreMapDB(): Promise<void> {
   const db = await getDatabase();
   await db.runAsync("DELETE FROM genre_map");
+}
+
+/**
+ * Fast lookup for song IDs belonging to a specific genre.
+ * Highly efficient thanks to SQLite indexing.
+ */
+export async function getSongIdsByGenre(genre: string): Promise<string[]> {
+  const db = await getDatabase();
+  try {
+    const rows = await db.getAllAsync<{ song_id: string }>(
+      "SELECT song_id FROM genre_map WHERE genre = ?",
+      [genre],
+    );
+    return rows.map((r) => r.song_id);
+  } catch (e) {
+    console.error("[DB] Error fetching IDs by genre:", e);
+    return [];
+  }
+}
+
+/**
+ * OPTIMIZED: Uses the SQLite index on the 'genre' column 
+ * to find all songs matching a specific genre.
+ */
+export async function getSongsByGenreFromDB(genre: string): Promise<string[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<{ song_id: string }>(
+    "SELECT song_id FROM genre_map WHERE genre = ?",
+    [genre],
+  );
+  return rows.map((r) => r.song_id);
 }
 
 // =========================================================================

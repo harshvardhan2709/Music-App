@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Image as ExpoImage } from 'expo-image';
-import { getSongMetadata } from '../utils/metadataUtils';
+import { getSongMetadata, getCachedMetadata } from '../utils/metadataUtils';
 
 interface SongImageProps {
   uri: string;
@@ -13,9 +13,13 @@ interface SongImageProps {
 }
 
 const SongImage = React.memo(({ uri, id, isCurrent, size = 44, iconSize = 18 }: SongImageProps) => {
-  const [artwork, setArtwork] = useState<string | null>(null);
+  // Use synchronous check for initial state to avoid re-renders for cached items
+  const [artwork, setArtwork] = useState<string | null>(() => getCachedMetadata(id)?.artwork || null);
 
   useEffect(() => {
+    // If we already have artwork from the cache, no need to fetch
+    if (artwork) return;
+
     let isMounted = true;
     (async () => {
       try {
@@ -30,7 +34,7 @@ const SongImage = React.memo(({ uri, id, isCurrent, size = 44, iconSize = 18 }: 
     return () => {
       isMounted = false;
     };
-  }, [id, uri]);
+  }, [id, uri, artwork]); // Added artwork as dependency to skip if found
 
   return (
     <View

@@ -405,31 +405,6 @@ export default function FeaturesScreen() {
                             </View>
                         </View>
 
-                        {/* Genre preview */}
-                        <View style={{
-                            backgroundColor: "rgba(255,255,255,0.03)",
-                            borderRadius: 12,
-                            padding: 12,
-                            marginBottom: 20,
-                        }}>
-                            <Text style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginBottom: 8, textAlign: "center" }}>
-                                GENRES DETECTED
-                            </Text>
-                            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
-                                {["🔥 Phonk", "🎉 Party", "🔔 Ringtone Worthy", "🌍 English", "🇮🇳 Indian Music"].map(g => (
-                                    <View key={g} style={{
-                                        paddingHorizontal: 10,
-                                        paddingVertical: 4,
-                                        borderRadius: 10,
-                                        backgroundColor: "rgba(127, 25, 230, 0.1)",
-                                        borderWidth: 1,
-                                        borderColor: "rgba(127, 25, 230, 0.2)",
-                                    }}>
-                                        <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>{g}</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
 
                         {/* Warning */}
                         <View style={{

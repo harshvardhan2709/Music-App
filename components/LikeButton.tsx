@@ -42,9 +42,6 @@ const LikeButton = React.memo(({ songId, song }: Props) => {
             />
         </TouchableOpacity>
     );
-}, (prevProps, nextProps) => {
-    // Only re-render if the songId changes
-    return prevProps.songId === nextProps.songId;
 });
 
 export default LikeButton;

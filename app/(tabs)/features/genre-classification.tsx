@@ -21,9 +21,7 @@ import { useAudioPlayer } from '../../../context/AudioPlayerContext';
 import { useGenre } from '../../../context/GenreContext';
 import {
     type GenreType,
-    GENRE_COLORS,
-    GENRE_ICONS,
-    GENRE_LIST,
+    getGenreStyle,
 } from '../../../utils/genreService';
 
 type SongAsset = MediaLibrary.Asset & { realDuration?: number };
@@ -54,7 +52,7 @@ export default function GenreScreen() {
         (async () => {
             setLoadingSongs(true);
             const songIds = Object.entries(genreMap)
-                .filter(([_, g]) => g === selectedGenre)
+                .filter(([_, genres]) => genres.includes(selectedGenre))
                 .map(([id]) => id);
 
             const { status: permStatus } = await MediaLibrary.requestPermissionsAsync();
@@ -68,7 +66,7 @@ export default function GenreScreen() {
                 first: 500,
             });
 
-            const matched = media.assets.filter(a => songIds.includes(a.id));
+            const matched = media.assets.filter(a => songIds.includes(a.id) && a.duration >= 35);
             setGenreSongs(matched as SongAsset[]);
             setLoadingSongs(false);
         })();
@@ -205,8 +203,8 @@ export default function GenreScreen() {
     if (hasClassified && (status === 'done' || status === 'idle')) {
         // If a genre is selected, show its songs
         if (selectedGenre) {
-            const colors = GENRE_COLORS[selectedGenre];
-            const iconName = GENRE_ICONS[selectedGenre] as any;
+            const colors = getGenreStyle(selectedGenre);
+            const iconName = "tag";
 
             return (
                 <View style={{ flex: 1, backgroundColor: '#0a0a0a', paddingTop: 48 }}>
@@ -252,9 +250,9 @@ export default function GenreScreen() {
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                 }}>
-                                    <FontAwesome name={iconName} size={16} color={colors.icon} />
+                                    <FontAwesome name={iconName} size={16} color={colors.iconColor} />
                                 </View>
-                                <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 17 }}>
+                                <Text style={{ color: colors.iconColor, fontWeight: '700', fontSize: 17 }}>
                                     {selectedGenre}
                                 </Text>
                                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
@@ -329,7 +327,7 @@ export default function GenreScreen() {
         }
 
         // Genre grid view
-        const activeGenres = GENRE_LIST.filter(g => genreCounts[g] > 0);
+        const activeGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]);
         const totalSongs = Object.keys(genreMap).length;
 
         return (
@@ -403,8 +401,8 @@ export default function GenreScreen() {
                         justifyContent: 'space-between',
                     }}>
                         {activeGenres.map((genre, index) => {
-                            const colors = GENRE_COLORS[genre];
-                            const iconName = GENRE_ICONS[genre] as any;
+                            const colors = getGenreStyle(genre);
+                            const iconName = "tag";
                             const count = genreCounts[genre];
 
                             return (
@@ -436,7 +434,7 @@ export default function GenreScreen() {
                                             justifyContent: 'center',
                                             alignItems: 'center',
                                         }}>
-                                            <FontAwesome name={iconName} size={20} color={colors.icon} />
+                                            <FontAwesome name={iconName} size={20} color={colors.iconColor} />
                                         </View>
                                         <View>
                                             <Text style={{
