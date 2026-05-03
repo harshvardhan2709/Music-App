@@ -128,7 +128,4 @@ Msick uses custom native modules. It must run as an **Expo Development Build**.
 
 For a technical deep dive into the SQLite schema, AI prompt engineering, and P2P implementation, check out **[DOCUMENTATION.md](./DOCUMENTATION.md)**.
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
