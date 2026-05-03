@@ -316,10 +316,11 @@ export async function loadGenreMapFromDB(): Promise<Record<string, string[]>> {
 
 export async function saveGenreMapToDB(
   genreMap: Record<string, string[]>,
+  clearFirst: boolean = false,
 ): Promise<void> {
   const db = await getDatabase();
   const entries = Object.entries(genreMap);
-  if (entries.length === 0) return;
+  if (entries.length === 0 && !clearFirst) return;
 
   // Flatten the map for batch insertion: [song_id, genre] pairs
   const flattened: [string, string][] = [];
@@ -332,6 +333,12 @@ export async function saveGenreMapToDB(
   // Batch insert — 50 rows per statement
   const CHUNK_SIZE = 50;
   await db.withTransactionAsync(async () => {
+    if (clearFirst) {
+      await db.runAsync("DELETE FROM genre_map");
+    }
+
+    if (flattened.length === 0) return;
+
     for (let i = 0; i < flattened.length; i += CHUNK_SIZE) {
       const chunk = flattened.slice(i, i + CHUNK_SIZE);
       const placeholders = chunk.map(() => "(?, ?)").join(", ");

@@ -98,9 +98,9 @@ export async function loadGenreMap(): Promise<GenreMap> {
   }
 }
 
-export async function saveGenreMap(genreMap: GenreMap): Promise<void> {
+export async function saveGenreMap(genreMap: GenreMap, clearFirst: boolean = false): Promise<void> {
   try {
-    await saveGenreMapToDB(genreMap);
+    await saveGenreMapToDB(genreMap, clearFirst);
   } catch (e) {
     console.error("Failed to save genre map", e);
   }
@@ -212,6 +212,7 @@ async function classifyBatch(
 export async function classifyAllSongs(
   songs: SongInput[],
   onProgress: (completed: number, total: number, currentBatch: string) => void,
+  clearFirst: boolean = false,
 ): Promise<GenreMap> {
   const totalSongs = songs.length;
   const allResults: GenreMap = {};
@@ -232,8 +233,8 @@ export async function classifyAllSongs(
     if (i < batches.length - 1) await new Promise((r) => setTimeout(r, 2000));
   }
 
-  // Only save the NEW results — existing entries are already in the DB
-  await saveGenreMap(allResults);
+  // Save the results — if clearFirst is true, it wipes the old data in the same transaction
+  await saveGenreMap(allResults, clearFirst);
 
   // Return merged map for the UI
   const existing = await loadGenreMap();

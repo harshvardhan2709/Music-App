@@ -108,10 +108,9 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
             setProgressMessage('Requesting permissions...');
             setErrorMessage('');
 
-            // Clear any stale data from previous failed runs
-            await clearGenreMapDB();
+            // Clear any stale flags, but KEEP existing DB data for now
+            // so the user doesn't see an empty library if detection is cancelled/fails
             await removeKV(CLASSIFIED_FLAG_KEY);
-            setGenreMap({});
             setHasClassified(false);
 
             // Request permissions
@@ -149,11 +148,12 @@ export function GenreProvider({ children }: { children: React.ReactNode }) {
             setStatus('classifying');
 
             // Classify with progress
+            // We pass 'true' for clearFirst so it replaces the whole DB atomically at the end
             const result = await classifyAllSongs(songs, (completed, total, batchDesc) => {
                 const classifyProgress = 10 + (completed / total) * 85; // 10% to 95%
                 setProgress(Math.round(classifyProgress));
                 setProgressMessage(`Analyzing: ${completed}/${total} songs classified\n${batchDesc}`);
-            });
+            }, true);
 
             setGenreMap(result);
 

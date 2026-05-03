@@ -178,7 +178,7 @@ export default function FeaturesScreen() {
                     <Animated.View entering={FadeInDown.delay(200).duration(400)}>
                         <TouchableOpacity
                             onPress={() => {
-                                resetClassification();
+                                setShowConfirmModal(true);
                             }}
                             style={{
                                 flexDirection: "row",
@@ -187,21 +187,21 @@ export default function FeaturesScreen() {
                                 gap: 10,
                                 padding: 14,
                                 borderRadius: 16,
-                                backgroundColor: "rgba(239, 68, 68, 0.05)",
+                                backgroundColor: "rgba(127, 25, 230, 0.05)",
                                 borderWidth: 1,
-                                borderColor: "rgba(239, 68, 68, 0.2)",
+                                borderColor: "rgba(127, 25, 230, 0.2)",
                                 marginBottom: 12,
                             }}
                         >
-                            <FontAwesome name="refresh" size={14} color="#ef4444" />
+                            <FontAwesome name="magic" size={14} color="#c084fc" />
                             <Text
                                 style={{
                                     fontWeight: "600",
                                     fontSize: 14,
-                                    color: "#ef4444",
+                                    color: "#c084fc",
                                 }}
                             >
-                                Reset Genre Results
+                                Re-detect Genres
                             </Text>
                         </TouchableOpacity>
                     </Animated.View>
@@ -360,7 +360,9 @@ export default function FeaturesScreen() {
                                 textAlign: "center",
                             }}
                         >
-                            This process will analyze all songs on your device using AI and automatically:
+                            {hasClassified 
+                                ? "This will re-analyze your library. Existing genre results will be replaced with fresh detections." 
+                                : "This process will analyze all songs on your device using AI and automatically:"}
                         </Text>
 
                         {/* Steps */}
